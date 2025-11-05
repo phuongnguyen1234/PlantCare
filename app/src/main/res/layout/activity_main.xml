@@ -44,9 +44,12 @@
                 <!-- 2. Tiêu đề -->
                 <TextView
                     android:id="@+id/toolbar_title"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
+                    android:layout_centerVertical="true"
+                    android:layout_toStartOf="@+id/btnHistory"
+                    android:layout_toEndOf="@+id/btnBurger"
+                    android:gravity="center"
                     android:text="PlantCare"
                     android:textAppearance="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
                     android:textColor="@color/colorPrimaryVariant"
@@ -78,10 +81,8 @@
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-
-    android:layout_marginBottom="?attr/actionBarSize" />
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:layout_marginBottom="?attr/actionBarSize" />
 
     <!-- 3. Bottom Navigation -->
     <!-- ĐƯA RA NGOÀI FrameLayout và đặt trực tiếp trong CoordinatorLayout -->
@@ -89,13 +90,11 @@
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-
         android:layout_gravity="bottom"
-
-    android:background="@color/colorBottomNavBackground"
-    app:elevation="8dp"
-    app:labelVisibilityMode="labeled"
-    app:menu="@menu/bottom_nav_menu"
-    app:itemIconTint="@color/bottom_nav_item_color"
-    app:itemTextColor="@color/bottom_nav_item_color"/>
+        android:background="@color/colorBottomNavBackground"
+        app:elevation="8dp"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_menu"
+        app:itemIconTint="@color/bottom_nav_item_color"
+        app:itemTextColor="@color/bottom_nav_item_color" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

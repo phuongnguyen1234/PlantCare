@@ -2,6 +2,8 @@ package com.example.plantcare.data.enums;
 
 public enum Status implements DisplayableEnum{
     SCHEDULED("Lên lịch"),
+
+    PENDING("Sẵn sàng"),
     COMPLETED("Hoàn thành"),
     MISSED("Quá hạn");
 
