@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.main.MainActivity"
+    android:fitsSystemWindows="false">
+
+    <!-- Sử dụng AppBarLayout và Toolbar để có thanh tiêu đề chuẩn Material Design -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        app:elevation="4dp"> <!-- Xóa bóng đổ nếu bạn muốn -->
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize">
+
+            <!-- Container cho các nút và tiêu đề -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical">
+
+                <!-- 1. Nút Burger (trái) -->
+                <ImageButton
+                    android:id="@+id/btnBurger"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:padding="8dp"
+                    android:scaleType="fitCenter"
+                    android:background="@drawable/circle_background"
+                    android:src="@drawable/menu_burger"
+                    app:tint="@color/colorIconTint"
+                    android:contentDescription="Menu"/>
+
+                <!-- 2. Tiêu đề -->
+                <TextView
+                    android:id="@+id/toolbar_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:text="PlantCare"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
+                    android:textColor="@color/colorPrimaryVariant"
+                    android:textStyle="bold"/>
+
+                <!-- 3. Nút Lịch sử (phải) -->
+                <ImageButton
+                    android:id="@+id/btnHistory"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="16dp"
+                    android:padding="8dp"
+                    android:scaleType="fitCenter"
+                    android:background="@drawable/circle_background"
+                    android:src="@drawable/history"
+                    app:tint="@color/colorIconTint"
+                    android:contentDescription="History" />
+
+            </RelativeLayout>
+
+        </androidx.appcompat.widget.Toolbar>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Fragment container -->
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+
+    android:layout_marginBottom="?attr/actionBarSize" />
+
+    <!-- 3. Bottom Navigation -->
+    <!-- ĐƯA RA NGOÀI FrameLayout và đặt trực tiếp trong CoordinatorLayout -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:layout_gravity="bottom"
+
+    android:background="@color/colorBottomNavBackground"
+    app:elevation="8dp"
+    app:labelVisibilityMode="labeled"
+    app:menu="@menu/bottom_nav_menu"
+    app:itemIconTint="@color/bottom_nav_item_color"
+    app:itemTextColor="@color/bottom_nav_item_color"/>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
