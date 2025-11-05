@@ -3,7 +3,8 @@ package com.example.plantcare.data.enums;
 public enum TaskType implements DisplayableEnum {
     WATER("Tưới nước"),
     FERTILIZE("Bón phân"),
-    LIGHT("Phơi nắng");
+    LIGHT("Phơi nắng"),
+    OTHER("Khác");
 
     private final String displayName;
 
