@@ -14,8 +14,7 @@ public class Plant {
     @NonNull
     private String name = "Cây của tôi";
 
-    @NonNull
-    private String imageUrl = "android.resource://com.example.plantcare/drawable/default_plant";
+    private String imageUrl;
 
     private String temperatureRange; // dạng mô tả, ví dụ "20–25°C"
     private String humidityRange;    // dạng mô tả, ví dụ "60–70%"
@@ -53,12 +52,11 @@ public class Plant {
         this.name = name;
     }
 
-    @NonNull
     public String getImageUrl() {
         return imageUrl;
     }
 
-    public void setImageUrl(@NonNull String imageUrl) {
+    public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
 

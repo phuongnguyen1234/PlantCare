@@ -6,7 +6,6 @@ import com.example.plantcare.data.enums.FrequencyUnit;
 import com.example.plantcare.data.enums.Status;
 import com.example.plantcare.data.enums.TaskType;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
