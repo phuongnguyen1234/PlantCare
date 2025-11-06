@@ -22,15 +22,7 @@ public class Converters {
     public static LocalDateTime toLocalDateTime(String value) {
         return value == null ? null : LocalDateTime.parse(value, formatter);
     }
-    @TypeConverter
-    public static LocalDate toLocalDate(String value) {
-        return value == null ? null : LocalDate.parse(value, formatter);
-    }
 
-    @TypeConverter
-    public static String fromLocalDate(LocalDate date) {
-        return date == null ? null : date.format(formatter);
-    }
     // Converter cho enum Status
     @TypeConverter
     public static String fromTaskType(Status status) {

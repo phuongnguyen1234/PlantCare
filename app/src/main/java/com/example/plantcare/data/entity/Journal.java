@@ -2,17 +2,13 @@ package com.example.plantcare.data.entity;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
-import androidx.room.ForeignKey;
-import androidx.room.Index;
 import androidx.room.PrimaryKey;
-
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity(tableName = "Journal")
 public class Journal {
     @PrimaryKey(autoGenerate = true)
     private int journalId;
-
 
     private int plantId;
 
@@ -20,7 +16,7 @@ public class Journal {
     private String plantName = "Cây của tôi";
 
     @NonNull
-    private LocalDate dateCreated = LocalDate.now();
+    private LocalDateTime dateCreated = LocalDateTime.now();
     private String content;
 
     public Journal() {
@@ -52,11 +48,11 @@ public class Journal {
     }
 
     @NonNull
-    public LocalDate getDateCreated() {
+    public LocalDateTime getDateCreated() {
         return dateCreated;
     }
 
-    public void setDateCreated(@NonNull LocalDate dateCreated) {
+    public void setDateCreated(@NonNull LocalDateTime dateCreated) {
         this.dateCreated = dateCreated;
     }
 
