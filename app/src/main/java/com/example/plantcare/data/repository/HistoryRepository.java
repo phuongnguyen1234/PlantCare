@@ -1,10 +1,6 @@
 package com.example.plantcare.data.repository;
 
-import android.content.Context;
-
-import androidx.room.Room;
-
-import com.example.plantcare.data.AppDatabase;
+import com.example.plantcare.MainApplication;
 import com.example.plantcare.data.dao.HistoryDao;
 import com.example.plantcare.data.entity.History;
 
@@ -16,9 +12,8 @@ public class HistoryRepository {
     private final HistoryDao historyDao;
     private final ExecutorService executorService;
 
-    public HistoryRepository(Context context) {
-        AppDatabase db = Room.databaseBuilder(context, AppDatabase.class, "plantcare.db").build();
-        historyDao = db.historyDao();
+    public HistoryRepository() {
+        historyDao = MainApplication.database.historyDao();
         executorService = Executors.newSingleThreadExecutor();
     }
 

@@ -1,10 +1,6 @@
 package com.example.plantcare.data.repository;
 
-import android.content.Context;
-
-import androidx.room.Room;
-
-import com.example.plantcare.data.AppDatabase;
+import com.example.plantcare.MainApplication;
 import com.example.plantcare.data.dao.TaskDao;
 import com.example.plantcare.data.entity.Task;
 
@@ -16,9 +12,8 @@ public class TaskRepository {
     private final TaskDao taskDao;
     private final ExecutorService executorService;
 
-    public TaskRepository(Context context) {
-        AppDatabase db = Room.databaseBuilder(context, AppDatabase.class, "plantcare.db").build();
-        taskDao = db.taskDao();
+    public TaskRepository() {
+        taskDao = MainApplication.database.taskDao();
         executorService = Executors.newSingleThreadExecutor();
     }
 

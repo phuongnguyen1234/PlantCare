@@ -1,10 +1,6 @@
 package com.example.plantcare.data.repository;
 
-import android.content.Context;
-
-import androidx.room.Room;
-
-import com.example.plantcare.data.AppDatabase;
+import com.example.plantcare.MainApplication;
 import com.example.plantcare.data.dao.JournalDao;
 import com.example.plantcare.data.entity.Journal;
 
@@ -16,9 +12,8 @@ public class JournalRepository {
     private final JournalDao journalDao;
     private final ExecutorService executorService;
 
-    public JournalRepository(Context context) {
-        AppDatabase db = Room.databaseBuilder(context, AppDatabase.class, "plantcare.db").build();
-        journalDao = db.journalDao();
+    public JournalRepository() {
+        journalDao = MainApplication.database.journalDao();
         executorService = Executors.newSingleThreadExecutor();
     }
 
