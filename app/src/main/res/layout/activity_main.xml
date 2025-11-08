@@ -8,7 +8,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".ui.main.MainActivity"
-        tools:openDrawer="start">
+        tools:openDrawer="start"
+        android:background="@color/layout_background_color">
 
         <!-- Nội dung chính (màn hình của bạn) -->
         <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -23,12 +24,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="?attr/colorSurface"
-                app:elevation="4dp">
+                app:elevation="0dp">
 
                 <androidx.appcompat.widget.Toolbar
                     android:id="@+id/toolbar"
                     android:layout_width="match_parent"
-                    android:layout_height="?attr/actionBarSize">
+                    android:layout_height="?attr/actionBarSize"
+                    android:background="@color/layout_background_color">
 
                     <RelativeLayout
                         android:layout_width="match_parent"
@@ -46,7 +48,9 @@
                             android:background="@drawable/circle_background"
                             android:src="@drawable/menu_burger"
                             app:tint="@color/colorIconTint"
-                            android:contentDescription="Menu"/>
+                            android:contentDescription="Menu"
+                            android:elevation="4dp"
+                            android:layout_marginStart="4dp"/>
 
                         <TextView
                             android:id="@+id/toolbar_title"
@@ -73,7 +77,8 @@
                             android:background="@drawable/circle_background"
                             android:src="@drawable/history"
                             app:tint="@color/colorIconTint"
-                            android:contentDescription="History" />
+                            android:contentDescription="History"
+                            android:elevation="4dp"/>
 
                     </RelativeLayout>
                 </androidx.appcompat.widget.Toolbar>

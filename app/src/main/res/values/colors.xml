@@ -20,8 +20,12 @@
 
     <!-- Thêm màu mới cho các thành phần UI -->
     <color name="colorBottomNavBackground">#FFFFFF</color> <!-- Nền cho BottomNav -->
-    <color name="colorButtonBackground">#E8F5E9</color> <!-- Màu nền xanh nhạt cho nút tròn -->
-    <color name="colorIconTint">#388E3C</color> <!-- Màu xanh đậm (từ PrimaryVariant) cho icon -->
+    <color name="colorButtonBackground">#FFFFFF</color> <!-- Màu nền xanh nhạt cho nút tròn -->
+    <color name="colorIconTint">#2E7D32</color> <!-- Màu xanh đậm (từ PrimaryVariant) cho icon -->
+
+    <!-- Custom Colors -->
+    <color name="layout_background_color">#F5FFF5</color>
+    <color name="title_color">#2E7D32</color>
 
     <!-- Error -->
     <color name="colorError">#E57373</color>
