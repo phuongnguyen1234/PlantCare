@@ -1,5 +1,7 @@
 package com.example.plantcare.data.repository;
 
+import androidx.lifecycle.LiveData;
+
 import com.example.plantcare.MainApplication;
 import com.example.plantcare.data.dao.HistoryDao;
 import com.example.plantcare.data.entity.History;
@@ -29,11 +31,11 @@ public class HistoryRepository {
         executorService.execute(() -> historyDao.delete(history));
     }
 
-    public List<History> getAllHistory() {
+    public LiveData<List<History>> getAllHistory() {
         return historyDao.getAllHistory();
     }
 
-    public List<History> getHistoryByStatus(String status) {
+    public LiveData<List<History>> getHistoryByStatus(String status) {
         return historyDao.getHistoryByStatus(status);
     }
 }

@@ -1,5 +1,7 @@
 package com.example.plantcare.data.repository;
 
+import androidx.lifecycle.LiveData;
+
 import com.example.plantcare.MainApplication;
 import com.example.plantcare.data.dao.TaskDao;
 import com.example.plantcare.data.entity.Task;
@@ -29,15 +31,15 @@ public class TaskRepository {
         executorService.execute(() -> taskDao.delete(task));
     }
 
-    public List<Task> getAllTasks() {
+    public LiveData<List<Task>> getAllTasks() {
         return taskDao.getAllTasks();
     }
 
-    public Task getTaskById(int id) {
+    public LiveData<Task> getTaskById(int id) {
         return taskDao.getTaskById(id);
     }
 
-    public List<Task> getTasksByStatus(String status) {
+    public LiveData<List<Task>> getTasksByStatus(String status) {
         return taskDao.getTasksByStatus(status);
     }
 }

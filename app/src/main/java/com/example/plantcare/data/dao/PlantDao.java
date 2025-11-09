@@ -1,5 +1,6 @@
 package com.example.plantcare.data.dao;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -23,8 +24,11 @@ public interface PlantDao {
     void delete(Plant plant);
 
     @Query("SELECT * FROM Plant ORDER BY name ASC")
-    List<Plant> getAllPlants();
+    LiveData<List<Plant>> getAllPlants();
 
     @Query("SELECT * FROM Plant WHERE plantId = :id LIMIT 1")
-    Plant getPlantById(int id);
+    LiveData<Plant> getPlantById(int id);
+
+    @Query("SELECT COUNT(*) FROM Plant")
+    LiveData<Integer> getPlantCount();
 }

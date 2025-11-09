@@ -24,7 +24,7 @@ public class Converters {
 
     // Converter cho enum Status
     @TypeConverter
-    public static String fromTaskType(Status status) {
+    public static String fromStatus(Status status) {
         return status == null ? null : status.name(); // lưu enum dưới dạng String
     }
 

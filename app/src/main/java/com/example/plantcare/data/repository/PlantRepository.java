@@ -1,5 +1,7 @@
 package com.example.plantcare.data.repository;
 
+import androidx.lifecycle.LiveData;
+
 import com.example.plantcare.MainApplication;
 import com.example.plantcare.data.dao.PlantDao;
 import com.example.plantcare.data.entity.Plant;
@@ -29,11 +31,11 @@ public class PlantRepository {
         executorService.execute(() -> plantDao.delete(plant));
     }
 
-    public List<Plant> getAllPlants() {
+    public LiveData<List<Plant>> getAllPlants() {
         return plantDao.getAllPlants();
     }
 
-    public Plant getPlantById(int id) {
+    public LiveData<Plant> getPlantById(int id) {
         return plantDao.getPlantById(id);
     }
 }

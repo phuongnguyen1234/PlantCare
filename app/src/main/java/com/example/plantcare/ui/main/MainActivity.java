@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
         params.setBehavior(new AppBarLayout.ScrollingViewBehavior());
 
         // DEBUG: Insert records into all tables to test database creation
-        insertDebugData();
+        //insertDebugData();
     }
 
     private void insertDebugData() {
