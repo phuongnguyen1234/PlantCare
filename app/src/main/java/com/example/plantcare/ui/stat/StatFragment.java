@@ -58,7 +58,7 @@ public class StatFragment extends Fragment {
                 ArrayList<BarEntry> entries = new ArrayList<>();
                 List<String> labels = new ArrayList<>();
                 DateTimeFormatter dbFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                DateTimeFormatter displayFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                DateTimeFormatter displayFormatter = DateTimeFormatter.ofPattern("dd/MM");
 
                 for (int i = 0; i < dailyTaskCounts.size(); i++) {
                     entries.add(new BarEntry(i, dailyTaskCounts.get(i).count));
@@ -80,27 +80,37 @@ public class StatFragment extends Fragment {
 
                 BarData barData = new BarData(dataSet);
                 barData.setBarWidth(0.5f);
+
+                // Disable zoom
+                binding.barChart.setTouchEnabled(false);
+                binding.barChart.setDragEnabled(false);
+                binding.barChart.setScaleEnabled(false);
+                binding.barChart.setPinchZoom(false);
+
                 binding.barChart.setData(barData);
                 binding.barChart.getDescription().setEnabled(false);
                 binding.barChart.getLegend().setEnabled(false);
-                binding.barChart.setExtraBottomOffset(40f); // Increased bottom offset
+                binding.barChart.setExtraBottomOffset(40f); 
 
                 XAxis xAxis = binding.barChart.getXAxis();
                 xAxis.setValueFormatter(new IndexAxisValueFormatter(labels));
                 xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
                 xAxis.setGranularity(1f);
                 xAxis.setGranularityEnabled(true);
-                xAxis.setLabelCount(labels.size()); // Force label count
+                xAxis.setLabelCount(labels.size()); 
                 xAxis.setLabelRotationAngle(-45);
                 xAxis.setTextColor(Color.BLACK);
+                xAxis.setDrawGridLines(false); // Disable X-axis grid lines
 
                 YAxis leftAxis = binding.barChart.getAxisLeft();
                 leftAxis.setGranularity(1f);
                 leftAxis.setAxisMinimum(0f);
                 leftAxis.setTextColor(Color.BLACK);
+                leftAxis.setDrawGridLines(false); // Disable Y-axis grid lines
+
 
                 binding.barChart.getAxisRight().setEnabled(false);
-                binding.barChart.setFitBars(true); // Fit bars to make sure they are visible
+                binding.barChart.setFitBars(true); 
                 binding.barChart.animateY(1000);
                 binding.barChart.invalidate();
             } else {
