@@ -8,7 +8,6 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
@@ -41,11 +40,9 @@ import com.example.plantcare.databinding.ActivityMainBinding;
 import com.example.plantcare.ui.history.HistoryFragment;
 import com.example.plantcare.ui.journal.JournalFragment;
 import com.example.plantcare.ui.plant.PlantFragment;
-import com.example.plantcare.ui.plant.addplant.AddPlantFragment;
 import com.example.plantcare.ui.stat.StatFragment;
 import com.example.plantcare.ui.task.TaskFragment;
 import com.google.android.material.appbar.AppBarLayout;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.time.LocalDateTime;
 
@@ -111,13 +108,9 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
             appBarParams.topMargin = insets.top;
             binding.appbar.setLayoutParams(appBarParams);
 
-            // Chèn padding bottom cho fragment container để né bottom navigation
-            binding.fragmentContainer.setPadding(
-                    binding.fragmentContainer.getPaddingLeft(),
-                    binding.fragmentContainer.getPaddingTop(),
-                    binding.fragmentContainer.getPaddingRight(),
-                    binding.bottomNavigation.getHeight()
-            );
+            // LOGIC GÂY LỖI ĐÃ BỊ XÓA
+            // Đoạn code setPadding cho fragmentContainer đã được di chuyển vào showToolbarAndNav
+            // để xử lý một cách linh hoạt.
 
             return windowInsets;
         });
@@ -140,6 +133,11 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
                     v.getPaddingBottom()
             );
             return windowInsets;
+        });
+        
+        // Post action to set initial padding after layout
+        binding.bottomNavigation.post(() -> {
+            showToolbarAndNav(true);
         });
 
         // === BOTTOM NAVIGATION ===
@@ -257,6 +255,20 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
         int visibility = show ? View.VISIBLE : View.GONE;
         binding.appbar.setVisibility(visibility);
         binding.bottomNavigation.setVisibility(visibility);
+
+        // Dynamically set padding on the fragment container
+        int bottomPadding = 0;
+        if (show && binding.bottomNavigation.getHeight() > 0) {
+            bottomPadding = binding.bottomNavigation.getHeight();
+        } 
+
+        binding.fragmentContainer.setPadding(
+                binding.fragmentContainer.getPaddingLeft(),
+                binding.fragmentContainer.getPaddingTop(),
+                binding.fragmentContainer.getPaddingRight(),
+                bottomPadding
+        );
+
         CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) binding.fragmentContainer.getLayoutParams();
         if (show) {
             params.setBehavior(new AppBarLayout.ScrollingViewBehavior());

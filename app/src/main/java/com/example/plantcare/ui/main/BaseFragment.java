@@ -10,16 +10,19 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.databinding.DataBindingUtil;
+import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.Fragment;
 
 import com.example.plantcare.R;
 
-public abstract class BaseFragment extends Fragment {
+public abstract class BaseFragment<B extends ViewDataBinding> extends Fragment {
 
     protected View rootView;
+    protected B binding;
+
     private ImageButton backButton;
     private TextView titleTextView;
-    private FrameLayout contentContainer;
 
     @Nullable
     @Override
@@ -28,10 +31,10 @@ public abstract class BaseFragment extends Fragment {
 
         backButton = rootView.findViewById(R.id.btn_back);
         titleTextView = rootView.findViewById(R.id.toolbar_title);
-        contentContainer = rootView.findViewById(R.id.secondary_content_container);
+        FrameLayout contentContainer = rootView.findViewById(R.id.secondary_content_container);
 
-        View contentView = inflater.inflate(getLayoutResourceId(), contentContainer, false);
-        contentContainer.addView(contentView);
+        // Inflate the content layout and get the binding object
+        binding = DataBindingUtil.inflate(inflater, getLayoutResourceId(), contentContainer, true);
 
         if (getActivity() instanceof ToolbarAndNavControl) {
             ((ToolbarAndNavControl) getActivity()).showToolbarAndNav(false);
@@ -58,6 +61,7 @@ public abstract class BaseFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        binding = null; // Important to avoid memory leaks
         if (getActivity() instanceof ToolbarAndNavControl) {
             ((ToolbarAndNavControl) getActivity()).showToolbarAndNav(true);
         }

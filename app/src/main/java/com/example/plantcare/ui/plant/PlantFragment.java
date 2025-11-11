@@ -18,7 +18,7 @@ import com.example.plantcare.data.entity.Plant;
 import com.example.plantcare.databinding.FragmentPlantBinding;
 import com.example.plantcare.ui.listeners.OnItemMenuClickListener;
 import com.example.plantcare.ui.main.ToolbarAndNavControl;
-import com.example.plantcare.ui.plant.addplant.AddPlantFragment;
+import com.example.plantcare.ui.plant.addeditplant.AddEditPlantFragment;
 
 public class PlantFragment extends Fragment implements OnItemMenuClickListener<Plant> {
 
@@ -60,7 +60,7 @@ public class PlantFragment extends Fragment implements OnItemMenuClickListener<P
         binding.fabLayout.fab.setVisibility(View.VISIBLE);
         binding.fabLayout.fab.setOnClickListener(v -> {
             getParentFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new AddPlantFragment())
+                    .replace(R.id.fragment_container, new AddEditPlantFragment())
                     .addToBackStack(null)
                     .commit();
         });
