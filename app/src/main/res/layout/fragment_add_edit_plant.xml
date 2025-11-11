@@ -28,8 +28,9 @@
                 android:layout_height="150dp"
                 android:layout_gravity="center_horizontal"
                 android:background="#E0E0E0"
-                android:padding="48dp"
-                android:scaleType="fitCenter"
+
+                android:scaleType="centerCrop"
+                app:imageUrl="@{viewModel.plantImageUri}"
                 android:src="@android:drawable/ic_menu_camera"
                 app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Large"
                 app:tint="@android:color/darker_gray" />

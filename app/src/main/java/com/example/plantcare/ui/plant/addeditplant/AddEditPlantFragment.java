@@ -1,10 +1,8 @@
 package com.example.plantcare.ui.plant.addeditplant;
 
 import android.app.DatePickerDialog;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ImageView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
@@ -13,7 +11,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.bumptech.glide.Glide;
 import com.example.plantcare.R;
 import com.example.plantcare.data.enums.FrequencyUnit;
 import com.example.plantcare.databinding.FragmentAddEditPlantBinding;
@@ -36,16 +33,9 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
         // This should be done in onCreate or onAttach.
         pickMediaLauncher = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
             if (uri != null) {
-                // The user picked a photo. Load it into the ImageView using Glide.
-                if (binding != null) {
-                    binding.ivPlantImage.setPadding(0, 0, 0, 0);
-                    binding.ivPlantImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                    Glide.with(this)
-                            .load(uri)
-                            .into(binding.ivPlantImage);
-                }
-                // TODO: Save the URI to the ViewModel for persistence
-                // mViewModel.setImageUri(uri.toString());
+                // The user picked a photo. Set the URI in the ViewModel.
+                // The ImageView will be updated automatically via DataBinding.
+                mViewModel.setPlantImageUri(uri);
             }
         });
     }
