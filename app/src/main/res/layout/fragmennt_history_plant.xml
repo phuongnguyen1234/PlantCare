@@ -1,0 +1,90 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/itemLayout"
+    android:layout_width="match_parent"
+    android:layout_height="130dp"
+    android:layout_margin="6dp"
+    android:background="@drawable/history_miss_item_background_orange"
+    android:orientation="horizontal"
+    android:padding="10dp">
+
+    <ImageView
+        android:id="@+id/imgAction"
+        android:layout_width="82dp"
+        android:layout_height="86dp"
+        android:layout_gravity="center_vertical"
+        android:src="@drawable/fertilizer" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="113dp"
+        android:layout_marginStart="10dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/txtTasKName"
+                android:layout_width="199dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_vertical"
+                android:text="Bón phân"
+                android:textSize="21sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/imgStatus"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_gravity="top|center_vertical"
+                android:src="@drawable/ic_done_ring_round_green_24dp"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/txtMiss"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_vertical"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/history_miss_background_for_text_miss"
+                android:gravity="center"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="5dp"
+                android:text="Bỏ lỡ"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:visibility="visible" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txtPlantName"
+            android:layout_width="match_parent"
+            android:layout_height="28dp"
+            android:text="Cây Xương Rồng"
+            android:textColor="#E9580C"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/txtDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Đã nhắc lúc 10:00:00 28/11/2025"
+            android:textColor="#666"
+            android:textSize="17dp" />
+
+        <TextView
+            android:id="@+id/txtDateFinish"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Đã nhắc tưới lúc 10:00:00 28/11/2025"
+            android:textColor="#15803D"
+            android:textSize="17dp"
+            android:visibility="gone"/>
+    </LinearLayout>
+
+</LinearLayout>
