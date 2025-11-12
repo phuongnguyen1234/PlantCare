@@ -1,4 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_history_sort_name"
+        android:title="sắp xếp theo tên công việc" />
+    <item
+        android:id="@+id/menu_history_sort_date"
+        android:title="Sắp xếp theo ngày" />
+    <item
+        android:id="@+id/menu_history_sort_status"
+        android:title="Sắp xếp theo trạng thái" />
 
 </menu>

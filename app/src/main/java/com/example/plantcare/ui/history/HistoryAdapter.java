@@ -1,8 +1,6 @@
 package com.example.plantcare.ui.history;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +15,6 @@ import androidx.annotation.Nullable;
 import com.example.plantcare.R; // Thêm import R
 import com.example.plantcare.data.entity.History;
 import com.example.plantcare.data.enums.Status; // Import Enum Status
-import com.example.plantcare.data.enums.TaskType; // Import Enum TaskType
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -39,13 +36,13 @@ public class HistoryAdapter extends ArrayAdapter<History> {
         History item = getItem(position);
         // Ánh xạ lại các view cho đúng với ID trong file XML
         LinearLayout layout = convertView.findViewById(R.id.itemLayout);
-        TextView txtTaskName = convertView.findViewById(R.id.txtTasKName); // Sửa ID
-        TextView txtPlantName = convertView.findViewById(R.id.txtPlantName);
-        TextView txtDate = convertView.findViewById(R.id.txtDate);
-        TextView txtDateFinish = convertView.findViewById(R.id.txtDateFinish); // Thêm TextView này
+        TextView txtTaskName = convertView.findViewById(R.id.txtTaskType); // Sửa ID
+        TextView txtPlantName = convertView.findViewById(R.id.txtTaskkName);
+        TextView txtDate = convertView.findViewById(R.id.txtNotifyTime);
+        TextView txtDateFinish = convertView.findViewById(R.id.txtCompleteTime); // Thêm TextView này
         ImageView imgAction = convertView.findViewById(R.id.imgAction);
-        ImageView imgStatus = convertView.findViewById(R.id.imgStatus);
-        TextView txtMiss = convertView.findViewById(R.id.txtMiss);
+        ImageView imgStatus = convertView.findViewById(R.id.imgDoneStatus);
+        TextView txtMiss = convertView.findViewById(R.id.txtMissStatus);
 
         // Định dạng thời gian cho dễ đọc
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");

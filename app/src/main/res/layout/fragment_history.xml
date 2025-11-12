@@ -29,7 +29,7 @@
              />
 
         <ImageButton
-            android:id="@+id/imageButton"
+            android:id="@+id/btnHistoryFilter"
             android:layout_width="40dp"
             android:layout_height="match_parent"
             android:layout_marginStart="10dp"
@@ -37,7 +37,7 @@
             app:srcCompat="@drawable/ic_filter_black_24dp" />
 
         <ImageButton
-            android:id="@+id/imageBut"
+            android:id="@+id/btnSortList"
             android:layout_width="30dp"
             android:layout_height="match_parent"
             android:background="@color/layout_background_color"
@@ -53,4 +53,5 @@
         android:dividerHeight="8dp"
         android:paddingTop="20dp"
         android:layout_marginTop="10dp"/>
+
 </LinearLayout>

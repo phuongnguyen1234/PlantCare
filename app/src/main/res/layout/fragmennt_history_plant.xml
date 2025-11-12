@@ -28,8 +28,8 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/txtTasKName"
-                android:layout_width="199dp"
+                android:id="@+id/txtTaskType"
+                android:layout_width="189dp"
                 android:layout_height="match_parent"
                 android:layout_gravity="center_vertical"
                 android:text="Bón phân"
@@ -37,7 +37,7 @@
                 android:textStyle="bold" />
 
             <ImageView
-                android:id="@+id/imgStatus"
+                android:id="@+id/imgDoneStatus"
                 android:layout_width="36dp"
                 android:layout_height="36dp"
                 android:layout_gravity="top|center_vertical"
@@ -45,9 +45,9 @@
                 android:visibility="gone" />
 
             <TextView
-                android:id="@+id/txtMiss"
+                android:id="@+id/txtMissStatus"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_marginEnd="20dp"
                 android:background="@drawable/history_miss_background_for_text_miss"
@@ -61,7 +61,7 @@
         </LinearLayout>
 
         <TextView
-            android:id="@+id/txtPlantName"
+            android:id="@+id/txtTaskkName"
             android:layout_width="match_parent"
             android:layout_height="28dp"
             android:text="Cây Xương Rồng"
@@ -70,7 +70,7 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/txtDate"
+            android:id="@+id/txtNotifyTime"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Đã nhắc lúc 10:00:00 28/11/2025"
@@ -78,13 +78,13 @@
             android:textSize="17dp" />
 
         <TextView
-            android:id="@+id/txtDateFinish"
+            android:id="@+id/txtCompleteTime"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Đã nhắc tưới lúc 10:00:00 28/11/2025"
             android:textColor="#15803D"
             android:textSize="17dp"
-            android:visibility="gone"/>
+            android:visibility="gone" />
     </LinearLayout>
 
 </LinearLayout>
