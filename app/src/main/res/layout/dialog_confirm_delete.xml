@@ -34,12 +34,12 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_cancel"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
             android:text="Hủy"
+            app:cornerRadius="8dp"
             android:textColor="#8A000000"
             app:backgroundTint="#E0E0E0" />
 
@@ -48,6 +48,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            app:cornerRadius="10dp"
             android:layout_marginStart="8dp"
             android:text="Xóa"
             app:backgroundTint="#FF0000" />
