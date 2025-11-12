@@ -1,12 +1,10 @@
 package com.example.plantcare.utils;
 
-import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.widget.ImageView;
 
 import androidx.databinding.BindingAdapter;
 
-import com.bumptech.glide.Glide;
 import com.example.plantcare.R;
 
 public class BindingAdapters {
