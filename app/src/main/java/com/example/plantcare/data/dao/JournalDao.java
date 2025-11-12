@@ -30,7 +30,4 @@ public interface JournalDao {
     @Query("SELECT * FROM Journal WHERE journalId = :id LIMIT 1")
     LiveData<Journal> getJournalById(int id);
 
-    // Corrected to get the single most recent journal for a plant
-    @Query("SELECT * FROM Journal WHERE plantId = :plantId ORDER BY dateCreated DESC LIMIT 1")
-    LiveData<Journal> getLatestJournalByPlantId(int plantId);
 }

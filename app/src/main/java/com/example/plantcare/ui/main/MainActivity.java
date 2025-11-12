@@ -183,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
         Log.d("DEBUG_DB", "Inserting debug plant");
         Plant debugPlant = new Plant();
         debugPlant.setName("Debug Plant");
-        debugPlant.setWaterFrequency(1);
+        debugPlant.setWaterFrequency(2);
         debugPlant.setWaterUnit(FrequencyUnit.HOUR);
         plantRepository.insert(debugPlant);
         Log.d("DEBUG_DB", "Inserted debug plant");
@@ -191,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
         // Insert a sample Journal (assuming plantId=1 for the plant above)
         JournalRepository journalRepository = new JournalRepository(this.getApplication());
         Journal debugJournal = new Journal();
-        debugJournal.setPlantId(1);
+        debugJournal.setPlantId(4);
         debugJournal.setPlantName("Debug Plant");
         debugJournal.setContent("This is a debug journal entry.");
         debugJournal.setDateCreated(LocalDateTime.now());

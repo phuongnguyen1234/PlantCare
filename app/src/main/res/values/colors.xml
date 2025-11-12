@@ -32,4 +32,5 @@
     <color name="colorOnError">#FFFFFF</color>
 
     <color name="red_pale">#FF8A80</color>
+    <color name="colorBlue">#2D60FD</color>
 </resources>

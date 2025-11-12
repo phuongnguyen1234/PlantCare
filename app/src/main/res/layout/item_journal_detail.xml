@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <!-- Optional: variable journal -->
+    </data>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="8dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <!-- HEADER: Chứa Ngày tháng và Icon Tùy chọn (Ba chấm) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
+
+                <!-- Ngày tháng -->
+                <TextView
+                    android:id="@+id/tvDate"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="05/11/2025"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/black" />
+
+                <!-- Icon Tùy chọn (Sử dụng ic_more_vert là icon ba chấm dọc mặc định của Android) -->
+                <ImageView
+                    android:id="@+id/ivOptions"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/menu_dots_vertical"
+                    android:padding="4dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Tùy chọn nhật ký" />
+            </LinearLayout>
+
+            <!-- RecyclerView cho Ảnh -->
+            <!-- LƯU Ý: LayoutManager cần được thay đổi trong code (Java/Kotlin) để hiển thị
+                 dạng list (1 ảnh lớn) hoặc grid (nhiều ảnh) -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewImages"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:nestedScrollingEnabled="false"
+                android:overScrollMode="never" />
+
+            <!-- Nội dung nhật ký -->
+            <TextView
+                android:id="@+id/tvContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Cây vẫn khỏe mạnh"
+                android:layout_marginTop="8dp"
+                android:textSize="15sp"
+                android:textColor="@android:color/black" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+</layout>
