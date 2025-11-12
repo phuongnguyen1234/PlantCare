@@ -29,6 +29,11 @@ public class TaskScope {
     public TaskScope() {
     }
 
+    public TaskScope(int taskId, int plantId) {
+        this.taskId = taskId;
+        this.plantId = plantId;
+    }
+
     public int getPlantId() {
         return plantId;
     }
