@@ -1,5 +1,6 @@
 package com.example.plantcare.data.dao;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.Query;
@@ -19,8 +20,11 @@ public interface TaskScopeDao {
     void delete(int plantId, int taskId);
 
     @Query("SELECT * FROM TaskScope WHERE plantId = :plantId")
-    List<TaskScope> getTasksByPlantId(int plantId);
+    LiveData<List<TaskScope>> getTasksByPlantId(int plantId);
 
     @Query("SELECT * FROM TaskScope WHERE taskId = :taskId")
-    List<TaskScope> getPlantsByTaskId(int taskId);
+    LiveData<List<TaskScope>> getPlantsByTaskId(int taskId);
+
+    @Query("SELECT * FROM TaskScope WHERE plantId = :plantId")
+    LiveData<List<TaskScope>> getTaskScopesByPlantId(int plantId);
 }

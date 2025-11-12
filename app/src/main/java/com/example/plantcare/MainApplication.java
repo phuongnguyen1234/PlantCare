@@ -2,14 +2,16 @@ package com.example.plantcare;
 
 import android.app.Application;
 
-import com.example.plantcare.data.AppDatabase;
-
+/**
+ * The Application class. The database instance is now managed by a singleton pattern
+ * in AppDatabase.getDatabase() and accessed via dependency injection in repositories.
+ * This class can be used for other application-level initializations if needed in the future.
+ */
 public class MainApplication extends Application {
-    public static AppDatabase database;
-
     @Override
     public void onCreate() {
         super.onCreate();
-        database = AppDatabase.getDatabase(this);
+        // The static database instance is no longer needed here.
+        // Repositories now get the database instance via AppDatabase.getDatabase(context).
     }
 }

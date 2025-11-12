@@ -1,8 +1,10 @@
 package com.example.plantcare.data.repository;
 
+import android.app.Application;
+
 import androidx.lifecycle.LiveData;
 
-import com.example.plantcare.MainApplication;
+import com.example.plantcare.data.AppDatabase;
 import com.example.plantcare.data.dao.HistoryDao;
 import com.example.plantcare.data.dao.PlantDao;
 import com.example.plantcare.data.dao.TaskDao;
@@ -11,7 +13,6 @@ import com.example.plantcare.data.model.DailyTaskCount;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class StatRepository {
     private final HistoryDao historyDao;
@@ -19,18 +20,14 @@ public class StatRepository {
     private final PlantDao plantDao;
 
     private final TaskDao taskDao;
-
     private final ExecutorService executorService;
 
-    public StatRepository() {
-        historyDao = MainApplication.database.historyDao();
-        plantDao = MainApplication.database.plantDao();
-        taskDao = MainApplication.database.taskDao();
-        executorService = Executors.newSingleThreadExecutor();
-    }
-
-    public LiveData<Integer> getPlantCount() {
-        return plantDao.getPlantCount();
+    public StatRepository(Application application) {
+        AppDatabase db = AppDatabase.getDatabase(application);
+        historyDao = db.historyDao();
+        plantDao = db.plantDao();
+        taskDao = db.taskDao();
+        executorService = AppDatabase.databaseWriteExecutor;
     }
 
     public LiveData<Integer> getTaskCount() {
@@ -50,5 +47,9 @@ public class StatRepository {
     public LiveData<List<DailyTaskCount>> getDailyCompletedTaskCounts() {
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
         return historyDao.getDailyCompletedTaskCounts(sevenDaysAgo);
+    }
+
+    public LiveData<Integer> getPlantCount() {
+        return plantDao.getPlantCount();
     }
 }

@@ -1,22 +1,24 @@
 package com.example.plantcare.data.repository;
 
+import android.app.Application;
+
 import androidx.lifecycle.LiveData;
 
-import com.example.plantcare.MainApplication;
+import com.example.plantcare.data.AppDatabase;
 import com.example.plantcare.data.dao.PlantDao;
 import com.example.plantcare.data.entity.Plant;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class PlantRepository {
     private final PlantDao plantDao;
     private final ExecutorService executorService;
 
-    public PlantRepository() {
-        plantDao = MainApplication.database.plantDao();
-        executorService = Executors.newSingleThreadExecutor();
+    public PlantRepository(Application application) {
+        AppDatabase db = AppDatabase.getDatabase(application);
+        plantDao = db.plantDao();
+        executorService = AppDatabase.databaseWriteExecutor;
     }
 
     public void insert(Plant plant) {

@@ -1,20 +1,23 @@
 package com.example.plantcare.data.repository;
 
-import com.example.plantcare.MainApplication;
+import android.app.Application;
+import androidx.lifecycle.LiveData;
+
+import com.example.plantcare.data.AppDatabase;
 import com.example.plantcare.data.dao.JournalDao;
 import com.example.plantcare.data.entity.Journal;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class JournalRepository {
     private final JournalDao journalDao;
     private final ExecutorService executorService;
 
-    public JournalRepository() {
-        journalDao = MainApplication.database.journalDao();
-        executorService = Executors.newSingleThreadExecutor();
+    public JournalRepository(Application application) {
+        AppDatabase db = AppDatabase.getDatabase(application);
+        journalDao = db.journalDao();
+        executorService = AppDatabase.databaseWriteExecutor;
     }
 
     public void insert(Journal journal) {
@@ -29,11 +32,11 @@ public class JournalRepository {
         executorService.execute(() -> journalDao.delete(journal));
     }
 
-    public List<Journal> getJournalsByPlant(int plantId) {
-        return journalDao.getJournalsByPlant(plantId);
+    public LiveData<List<Journal>> getJournalsByPlantId(int plantId) {
+        return journalDao.getJournalsByPlantId(plantId);
     }
 
-    public Journal getJournalById(int id) {
-        return journalDao.getJournalById(id);
+    public LiveData<Journal> getJournalById(int journalId) {
+        return journalDao.getJournalById(journalId);
     }
 }

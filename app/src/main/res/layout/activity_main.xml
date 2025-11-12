@@ -8,6 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".ui.main.MainActivity"
+        android:fitsSystemWindows="true"
         tools:openDrawer="start"
         android:background="@color/layout_background_color">
 
@@ -15,8 +16,7 @@
         <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:id="@+id/main"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fitsSystemWindows="true">
+            android:layout_height="match_parent">
 
             <!-- AppBar và Toolbar -->
             <com.google.android.material.appbar.AppBarLayout
@@ -99,10 +99,10 @@
                 android:layout_gravity="bottom"
                 android:background="@color/colorBottomNavBackground"
                 app:elevation="8dp"
-                app:labelVisibilityMode="labeled"
-                app:menu="@menu/bottom_nav_menu"
                 app:itemIconTint="@color/bottom_nav_item_color"
-                app:itemTextColor="@color/bottom_nav_item_color" />
+                app:itemTextColor="@color/bottom_nav_item_color"
+                app:labelVisibilityMode="labeled"
+                app:menu="@menu/bottom_nav_menu" />
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
@@ -112,7 +112,6 @@
             android:layout_width="280dp"
             android:layout_height="match_parent"
             android:layout_gravity="start"
-            android:fitsSystemWindows="true"
             app:headerLayout="@layout/nav_header"
             app:menu="@menu/drawer_menu">
 

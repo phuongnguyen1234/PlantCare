@@ -46,7 +46,7 @@ import com.google.android.material.appbar.AppBarLayout;
 
 import java.time.LocalDateTime;
 
-public class MainActivity extends AppCompatActivity implements ToolbarAndNavControl {
+public class MainActivity extends AppCompatActivity implements ToolbarAndNavControl, DrawerLocker {
     private ActivityMainBinding binding;
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
@@ -54,18 +54,21 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Bật chế độ Edge-to-Edge (vẽ layout tràn màn hình)
         EdgeToEdge.enable(this);
 
+        // Sử dụng DataBinding
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
-        // --- Thiết lập phiên bản ứng dụng ---
+        // === Thiết lập phiên bản ứng dụng ===
         setAppVersion();
 
-        // --- Thiết lập DrawerLayout và NavigationDrawer ---
+        // === DrawerLayout và Toolbar ===
         drawerLayout = binding.drawerLayout;
         setSupportActionBar(binding.toolbar);
 
-        // --- Xử lý nút Back mới (OnBackPressedDispatcher) ---
+        // === Xử lý nút back khi Drawer mở ===
         OnBackPressedCallback onBackPressedCallback = new OnBackPressedCallback(false) {
             @Override
             public void handleOnBackPressed() {
@@ -92,25 +95,49 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
                 onBackPressedCallback.setEnabled(false);
             }
         };
-
         drawerLayout.addDrawerListener(drawerToggle);
-
         binding.btnBurger.setOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
-
-        // === XỬ LÝ INSETS ===
+        // === XỬ LÝ INSETS CHO MAIN CONTENT ===
         ViewCompat.setOnApplyWindowInsetsListener(binding.main, (v, windowInsets) -> {
             Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            ViewGroup.MarginLayoutParams appBarParams = (ViewGroup.MarginLayoutParams) binding.appbar.getLayoutParams();
+
+            // Chèn margin top cho AppBar để né status bar
+            ViewGroup.MarginLayoutParams appBarParams =
+                    (ViewGroup.MarginLayoutParams) binding.appbar.getLayoutParams();
             appBarParams.topMargin = insets.top;
             binding.appbar.setLayoutParams(appBarParams);
-            binding.fragmentContainer.setPadding(
-                    binding.fragmentContainer.getPaddingLeft(),
-                    binding.fragmentContainer.getPaddingTop(),
-                    binding.fragmentContainer.getPaddingRight(),
-                    binding.bottomNavigation.getHeight()
+
+            // LOGIC GÂY LỖI ĐÃ BỊ XÓA
+            // Đoạn code setPadding cho fragmentContainer đã được di chuyển vào showToolbarAndNav
+            // để xử lý một cách linh hoạt.
+
+            return windowInsets;
+        });
+
+        // === XỬ LÝ INSETS CHO DRAWER (NavigationView) ===
+        ViewCompat.setOnApplyWindowInsetsListener(binding.navView, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(0, insets.top, 0, insets.bottom); // né status & nav bar
+            return windowInsets;
+        });
+
+        // === XỬ LÝ INSETS CHO HEADER TRONG DRAWER ===
+        View headerView = binding.navView.getHeaderView(0);
+        ViewCompat.setOnApplyWindowInsetsListener(headerView, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars());
+            v.setPadding(
+                    v.getPaddingLeft(),
+                    insets.top, // chừa đủ khoảng trống status bar
+                    v.getPaddingRight(),
+                    v.getPaddingBottom()
             );
             return windowInsets;
+        });
+        
+        // Post action to set initial padding after layout
+        binding.bottomNavigation.post(() -> {
+            showToolbarAndNav(true);
         });
 
         // === BOTTOM NAVIGATION ===
@@ -132,22 +159,28 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
             return true;
         });
 
+        // === Nút History ===
         binding.btnHistory.setOnClickListener(v -> loadFragment(new HistoryFragment(), true));
 
+        // === Fragment mặc định ===
         if (savedInstanceState == null) {
             binding.bottomNavigation.setSelectedItemId(R.id.nav_stat);
         }
 
-        CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) binding.fragmentContainer.getLayoutParams();
+        // === Behavior cho Fragment container (AppBar scrolling) ===
+        CoordinatorLayout.LayoutParams params =
+                (CoordinatorLayout.LayoutParams) binding.fragmentContainer.getLayoutParams();
         params.setBehavior(new AppBarLayout.ScrollingViewBehavior());
 
-        // DEBUG: Insert records into all tables to test database creation
+        //debug data
         //insertDebugData();
     }
 
+
     private void insertDebugData() {
         // Insert a sample Plant
-        PlantRepository plantRepository = new PlantRepository();
+        PlantRepository plantRepository = new PlantRepository(this.getApplication());
+        Log.d("DEBUG_DB", "Inserting debug plant");
         Plant debugPlant = new Plant();
         debugPlant.setName("Debug Plant");
         debugPlant.setWaterFrequency(1);
@@ -156,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
         Log.d("DEBUG_DB", "Inserted debug plant");
 
         // Insert a sample Journal (assuming plantId=1 for the plant above)
-        JournalRepository journalRepository = new JournalRepository();
+        JournalRepository journalRepository = new JournalRepository(this.getApplication());
         Journal debugJournal = new Journal();
         debugJournal.setPlantId(1);
         debugJournal.setPlantName("Debug Plant");
@@ -166,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
         Log.d("DEBUG_DB", "Inserted debug journal");
 
         // Insert a sample History
-        HistoryRepository historyRepository = new HistoryRepository();
+        HistoryRepository historyRepository = new HistoryRepository(this.getApplication());
         History debugHistory = new History();
         debugHistory.setTaskName("Debug Task: Water Plant");
         debugHistory.setTaskType(TaskType.WATER);
@@ -208,7 +241,7 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
         return super.onOptionsItemSelected(item);
     }
 
-    private void loadFragment(Fragment fragment, boolean addToBackStack) {
+    public void loadFragment(Fragment fragment, boolean addToBackStack) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(binding.fragmentContainer.getId(), fragment);
@@ -223,6 +256,20 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
         int visibility = show ? View.VISIBLE : View.GONE;
         binding.appbar.setVisibility(visibility);
         binding.bottomNavigation.setVisibility(visibility);
+
+        // Dynamically set padding on the fragment container
+        int bottomPadding = 0;
+        if (show && binding.bottomNavigation.getHeight() > 0) {
+            bottomPadding = binding.bottomNavigation.getHeight();
+        } 
+
+        binding.fragmentContainer.setPadding(
+                binding.fragmentContainer.getPaddingLeft(),
+                binding.fragmentContainer.getPaddingTop(),
+                binding.fragmentContainer.getPaddingRight(),
+                bottomPadding
+        );
+
         CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) binding.fragmentContainer.getLayoutParams();
         if (show) {
             params.setBehavior(new AppBarLayout.ScrollingViewBehavior());
@@ -230,5 +277,14 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
             params.setBehavior(null);
         }
         binding.fragmentContainer.setLayoutParams(params);
+    }
+
+    @Override
+    public void setDrawerLocked(boolean shouldLock) {
+        if (shouldLock) {
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        } else {
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+        }
     }
 }
