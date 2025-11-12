@@ -13,18 +13,11 @@ public class BindingAdapters {
     @BindingAdapter("imageUrl")
     public static void loadImage(ImageView view, Uri uri) {
         view.setPadding(0, 0, 0, 0);
-        if (uri != null) {
             view.setImageTintList(null);
             Glide.with(view.getContext())
                     .load(uri)
                     .centerCrop()
                     .into(view);
-        } else {
-            view.setImageResource(android.R.drawable.ic_menu_camera);
-            int darkerGray = view.getContext().getResources().getColor(android.R.color.darker_gray);
-            view.setImageTintList(ColorStateList.valueOf(darkerGray));
-            view.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        }
     }
 
     @BindingAdapter("imageUrl")

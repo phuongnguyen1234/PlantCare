@@ -40,6 +40,10 @@ public abstract class BaseFragment<B extends ViewDataBinding> extends Fragment {
             ((ToolbarAndNavControl) getActivity()).showToolbarAndNav(false);
         }
 
+        if (getActivity() instanceof DrawerLocker) {
+            ((DrawerLocker) getActivity()).setDrawerLocked(true);
+        }
+
         return rootView;
     }
 
@@ -64,6 +68,10 @@ public abstract class BaseFragment<B extends ViewDataBinding> extends Fragment {
         binding = null; // Important to avoid memory leaks
         if (getActivity() instanceof ToolbarAndNavControl) {
             ((ToolbarAndNavControl) getActivity()).showToolbarAndNav(true);
+        }
+
+        if (getActivity() instanceof DrawerLocker) {
+            ((DrawerLocker) getActivity()).setDrawerLocked(false);
         }
     }
 

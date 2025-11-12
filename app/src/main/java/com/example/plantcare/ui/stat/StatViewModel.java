@@ -1,14 +1,17 @@
 package com.example.plantcare.ui.stat;
 
+import android.app.Application;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.ViewModel;
 
 import com.example.plantcare.data.model.DailyTaskCount;
 import com.example.plantcare.data.repository.StatRepository;
 
 import java.util.List;
 
-public class StatViewModel extends ViewModel {
+public class StatViewModel extends AndroidViewModel {
     private final StatRepository statRepository;
 
     private final LiveData<Integer> plantCount;
@@ -17,8 +20,9 @@ public class StatViewModel extends ViewModel {
     private final LiveData<Integer> todayCompletedTaskCount;
     private final LiveData<List<DailyTaskCount>> dailyCompletedTaskCounts;
 
-    public StatViewModel() {
-        statRepository = new StatRepository();
+    public StatViewModel(@NonNull Application application) {
+        super(application);
+        statRepository = new StatRepository(application);
         plantCount = statRepository.getPlantCount();
         taskCount = statRepository.getTaskCount();
         dueSoonTaskCount = statRepository.getDueSoonTaskCount();

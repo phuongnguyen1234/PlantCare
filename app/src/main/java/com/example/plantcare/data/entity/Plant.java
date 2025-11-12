@@ -6,27 +6,31 @@ import androidx.room.PrimaryKey;
 
 import com.example.plantcare.data.enums.FrequencyUnit;
 
+import java.time.LocalDate;
+
 @Entity(tableName = "Plant")
 public class Plant {
     @PrimaryKey(autoGenerate = true)
     private int plantId;
 
     @NonNull
-    private String name = "Cây của tôi";
+    private String name;
+
+    @NonNull
+    private LocalDate datePlanted = LocalDate.now();
 
     private String imageUrl;
 
     private String temperatureRange; // dạng mô tả, ví dụ "20–25°C"
     private String humidityRange;    // dạng mô tả, ví dụ "60–70%"
 
-    private int waterFrequency = 1;
+    private int waterFrequency;
     private int fertilizerFrequency;
     private int lightFrequency;
 
     //unit nay la don vi tan suat (gio/lan, ngay/lan...)
 
-    @NonNull
-    private FrequencyUnit waterUnit = FrequencyUnit.HOUR;
+    private FrequencyUnit waterUnit;
     private FrequencyUnit fertilizerUnit;
     private FrequencyUnit lightUnit;
 
@@ -50,6 +54,15 @@ public class Plant {
 
     public void setName(@NonNull String name) {
         this.name = name;
+    }
+
+    @NonNull
+    public LocalDate getDatePlanted() {
+        return datePlanted;
+    }
+
+    public void setDatePlanted(@NonNull LocalDate datePlanted) {
+        this.datePlanted = datePlanted;
     }
 
     public String getImageUrl() {
@@ -100,12 +113,11 @@ public class Plant {
         this.lightFrequency = lightFrequency;
     }
 
-    @NonNull
     public FrequencyUnit getWaterUnit() {
         return waterUnit;
     }
 
-    public void setWaterUnit(@NonNull FrequencyUnit waterUnit) {
+    public void setWaterUnit(FrequencyUnit waterUnit) {
         this.waterUnit = waterUnit;
     }
 

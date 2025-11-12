@@ -6,20 +6,36 @@ import com.example.plantcare.data.enums.FrequencyUnit;
 import com.example.plantcare.data.enums.Status;
 import com.example.plantcare.data.enums.TaskType;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Converters {
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    // Formatter for objects WITH time information
+    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    // Formatter for objects with ONLY date information
+    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE;
 
     @TypeConverter
     public static String fromLocalDateTime(LocalDateTime dateTime) {
-        return dateTime == null ? null : dateTime.format(formatter);
+        return dateTime == null ? null : dateTime.format(dateTimeFormatter);
     }
 
     @TypeConverter
     public static LocalDateTime toLocalDateTime(String value) {
-        return value == null ? null : LocalDateTime.parse(value, formatter);
+        return value == null ? null : LocalDateTime.parse(value, dateTimeFormatter);
+    }
+
+    @TypeConverter
+    public static String fromLocalDate(LocalDate date) {
+        // Use the correct formatter for LocalDate
+        return date == null ? null : date.format(dateFormatter);
+    }
+
+    @TypeConverter
+    public static LocalDate toLocalDate(String value) {
+        // Use the correct formatter for LocalDate
+        return value == null ? null : LocalDate.parse(value, dateFormatter);
     }
 
     // Converter cho enum Status

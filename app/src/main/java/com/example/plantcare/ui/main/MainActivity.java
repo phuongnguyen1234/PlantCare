@@ -46,7 +46,7 @@ import com.google.android.material.appbar.AppBarLayout;
 
 import java.time.LocalDateTime;
 
-public class MainActivity extends AppCompatActivity implements ToolbarAndNavControl {
+public class MainActivity extends AppCompatActivity implements ToolbarAndNavControl, DrawerLocker {
     private ActivityMainBinding binding;
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
@@ -179,7 +179,8 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
 
     private void insertDebugData() {
         // Insert a sample Plant
-        PlantRepository plantRepository = new PlantRepository();
+        PlantRepository plantRepository = new PlantRepository(this.getApplication());
+        Log.d("DEBUG_DB", "Inserting debug plant");
         Plant debugPlant = new Plant();
         debugPlant.setName("Debug Plant");
         debugPlant.setWaterFrequency(1);
@@ -188,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
         Log.d("DEBUG_DB", "Inserted debug plant");
 
         // Insert a sample Journal (assuming plantId=1 for the plant above)
-        JournalRepository journalRepository = new JournalRepository();
+        JournalRepository journalRepository = new JournalRepository(this.getApplication());
         Journal debugJournal = new Journal();
         debugJournal.setPlantId(1);
         debugJournal.setPlantName("Debug Plant");
@@ -198,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
         Log.d("DEBUG_DB", "Inserted debug journal");
 
         // Insert a sample History
-        HistoryRepository historyRepository = new HistoryRepository();
+        HistoryRepository historyRepository = new HistoryRepository(this.getApplication());
         History debugHistory = new History();
         debugHistory.setTaskName("Debug Task: Water Plant");
         debugHistory.setTaskType(TaskType.WATER);
@@ -276,5 +277,14 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
             params.setBehavior(null);
         }
         binding.fragmentContainer.setLayoutParams(params);
+    }
+
+    @Override
+    public void setDrawerLocked(boolean shouldLock) {
+        if (shouldLock) {
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        } else {
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+        }
     }
 }

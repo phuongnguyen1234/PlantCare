@@ -1,22 +1,23 @@
 package com.example.plantcare.data.repository;
 
+import android.app.Application;
 import androidx.lifecycle.LiveData;
 
-import com.example.plantcare.MainApplication;
+import com.example.plantcare.data.AppDatabase;
 import com.example.plantcare.data.dao.HistoryDao;
 import com.example.plantcare.data.entity.History;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class HistoryRepository {
     private final HistoryDao historyDao;
     private final ExecutorService executorService;
 
-    public HistoryRepository() {
-        historyDao = MainApplication.database.historyDao();
-        executorService = Executors.newSingleThreadExecutor();
+    public HistoryRepository(Application application) {
+        AppDatabase db = AppDatabase.getDatabase(application);
+        historyDao = db.historyDao();
+        executorService = AppDatabase.databaseWriteExecutor;
     }
 
     public void insert(History history) {

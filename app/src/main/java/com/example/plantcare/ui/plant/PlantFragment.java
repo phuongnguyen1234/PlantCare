@@ -19,6 +19,7 @@ import com.example.plantcare.databinding.FragmentPlantBinding;
 import com.example.plantcare.ui.listeners.OnItemMenuClickListener;
 import com.example.plantcare.ui.main.ToolbarAndNavControl;
 import com.example.plantcare.ui.plant.addeditplant.AddEditPlantFragment;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class PlantFragment extends Fragment implements OnItemMenuClickListener<Plant> {
 
@@ -81,13 +82,28 @@ public class PlantFragment extends Fragment implements OnItemMenuClickListener<P
 
     @Override
     public void onEditClicked(Plant plant) {
-        Toast.makeText(getContext(), "Edit plant: " + plant.getName(), Toast.LENGTH_SHORT).show();
-        // TODO: Navigate to Edit Plant screen
+        Bundle bundle = new Bundle();
+        bundle.putInt("plantId", plant.getPlantId());
+
+        AddEditPlantFragment addEditPlantFragment = new AddEditPlantFragment();
+        addEditPlantFragment.setArguments(bundle);
+
+        getParentFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, addEditPlantFragment)
+                .addToBackStack(null)
+                .commit();
     }
 
     @Override
     public void onDeleteClicked(Plant plant) {
-        Toast.makeText(getContext(), "Delete plant: " + plant.getName(), Toast.LENGTH_SHORT).show();
-        // TODO: Show a confirmation dialog and call ViewModel to delete
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Xóa cây")
+                .setMessage("Bạn có chắc chắn muốn xóa cây '" + plant.getName() + "' không? Mọi dữ liệu liên quan cũng sẽ bị xóa.")
+                .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
+                .setPositiveButton("Xóa", (dialog, which) -> {
+                    mViewModel.delete(plant);
+                    Toast.makeText(getContext(), "Đã xóa cây: " + plant.getName(), Toast.LENGTH_SHORT).show();
+                })
+                .show();
     }
 }
