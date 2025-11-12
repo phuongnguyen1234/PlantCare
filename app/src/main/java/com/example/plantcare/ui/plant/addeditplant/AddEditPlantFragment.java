@@ -1,6 +1,7 @@
 package com.example.plantcare.ui.plant.addeditplant;
 
 import android.app.DatePickerDialog;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -45,12 +46,10 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
             plantId = getArguments().getInt("plantId", -1);
         }
 
+        // The launcher now only updates the ViewModel for the preview
         pickMediaLauncher = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
             if (uri != null) {
                 mViewModel.setPlantImageUri(uri);
-                if (currentPlant != null) {
-                    currentPlant.setImageUrl(uri.toString());
-                }
             }
         });
     }
@@ -83,13 +82,14 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
                 if (plant != null) {
                     currentPlant = plant;
                     binding.setPlant(currentPlant);
-                    // This will correctly select the pre-filled value in the dropdown.
                     updateUIWithPlantData(currentPlant);
                 }
             });
         } else {
             currentPlant = new Plant();
             binding.setPlant(currentPlant);
+            // Set today's date for new plants
+            binding.etPlantingDate.setText(LocalDate.now().format(dateFormatter));
         }
     }
 
@@ -109,6 +109,10 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
                     .build());
         });
 
+        binding.ivDeleteImage.setOnClickListener(v -> {
+            mViewModel.setPlantImageUri(null);
+        });
+
         // This populates the dropdowns with ALL possible values.
         DropdownUtils.setupEnumDropdown(binding.actvWaterUnit, FrequencyUnit.class);
         DropdownUtils.setupEnumDropdown(binding.actvFertilizerUnit, FrequencyUnit.class);
@@ -120,6 +124,13 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
             if (isSaveComplete != null && isSaveComplete) {
                 getParentFragmentManager().popBackStack();
                 mViewModel.onSaveComplete();
+            }
+        });
+
+        mViewModel.toastMessage.observe(getViewLifecycleOwner(), message -> {
+            if (message != null) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                mViewModel.onToastMessageShown();
             }
         });
     }
@@ -143,9 +154,14 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
     }
 
     private void updateUIWithPlantData(Plant plant) {
-        // Set display name for dropdowns. The adapter is already set.
+        // Update the image preview from the saved URI
+        if (plant.getImageUrl() != null && !plant.getImageUrl().isEmpty()) {
+            mViewModel.setPlantImageUri(Uri.parse(plant.getImageUrl()));
+        } else {
+            mViewModel.setPlantImageUri(null);
+        }
+        
         if (plant.getDatePlanted() != null) {
-            // Use the consistent formatter to display the date
             binding.etPlantingDate.setText(plant.getDatePlanted().format(dateFormatter));
         }
 
@@ -159,7 +175,6 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
             binding.actvLightUnit.setText(plant.getLightUnit().getDisplayName(), false);
         }
 
-        // Split and set range fields
         if (plant.getTemperatureRange() != null && !plant.getTemperatureRange().isEmpty()) {
             String[] tempRange = plant.getTemperatureRange().split("-");
             if (tempRange.length == 2) {
@@ -204,13 +219,25 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
     }
 
     private void updatePlantFromFields() {
+        // Handle image copying before saving
+        Uri imageUri = mViewModel.getPlantImageUri().getValue();
+        if (imageUri != null && "content".equals(imageUri.getScheme())) {
+            // This is a new image from the picker, copy it to internal storage
+            Uri internalUri = mViewModel.copyImageToInternalStorage(imageUri);
+            if (internalUri != null) {
+                currentPlant.setImageUrl(internalUri.toString());
+            }
+        } else if (imageUri == null) {
+            // User might have cleared the image
+            currentPlant.setImageUrl(null);
+        }
+        // If imageUri has a 'file' scheme, it's already in internal storage, no action needed.
+
         currentPlant.setName(binding.etPlantName.getText().toString());
 
-        // Use the consistent formatter to parse the date
         try {
             currentPlant.setDatePlanted(LocalDate.parse(binding.etPlantingDate.getText().toString(), dateFormatter));
         } catch(Exception e) {
-            // Set to now as a fallback, though validation should prevent this
             currentPlant.setDatePlanted(LocalDate.now());
         }
 
@@ -250,23 +277,10 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
             currentPlant.setLightFrequency(0);
         }
 
-        // Convert display name back to enum value before saving
-        currentPlant.setWaterUnit(getEnumValueFromDisplayName(FrequencyUnit.class, binding.actvWaterUnit.getText().toString()));
-        currentPlant.setFertilizerUnit(getEnumValueFromDisplayName(FrequencyUnit.class, binding.actvFertilizerUnit.getText().toString()));
-        currentPlant.setLightUnit(getEnumValueFromDisplayName(FrequencyUnit.class, binding.actvLightUnit.getText().toString()));
+        currentPlant.setWaterUnit(DropdownUtils.getEnumValueFromDisplayName(FrequencyUnit.class, binding.actvWaterUnit.getText().toString()));
+        currentPlant.setFertilizerUnit(DropdownUtils.getEnumValueFromDisplayName(FrequencyUnit.class, binding.actvFertilizerUnit.getText().toString()));
+        currentPlant.setLightUnit(DropdownUtils.getEnumValueFromDisplayName(FrequencyUnit.class, binding.actvLightUnit.getText().toString()));
 
         currentPlant.setNote(binding.etNote.getText().toString());
-    }
-
-    private <T extends Enum<T> & DisplayableEnum> T getEnumValueFromDisplayName(Class<T> enumClass, String displayName) {
-        if (TextUtils.isEmpty(displayName) || enumClass.getEnumConstants() == null) {
-            return null;
-        }
-        for (T enumValue : enumClass.getEnumConstants()) {
-            if (Objects.equals(enumValue.getDisplayName(), displayName)) {
-                return enumValue;
-            }
-        }
-        return null;
     }
 }

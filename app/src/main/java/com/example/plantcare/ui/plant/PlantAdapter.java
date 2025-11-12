@@ -15,6 +15,8 @@ import com.example.plantcare.databinding.ItemPlantBinding;
 import com.example.plantcare.ui.listeners.OnItemMenuClickListener;
 import com.example.plantcare.utils.MenuUtils;
 
+import java.util.Objects;
+
 public class PlantAdapter extends ListAdapter<Plant, PlantAdapter.ViewHolder> {
 
     private final OnItemMenuClickListener<Plant> menuClickListener;
@@ -32,7 +34,9 @@ public class PlantAdapter extends ListAdapter<Plant, PlantAdapter.ViewHolder> {
 
         @Override
         public boolean areContentsTheSame(@NonNull Plant oldItem, @NonNull Plant newItem) {
-            return oldItem.getName().equals(newItem.getName());
+            // So sánh cả tên và URL ảnh để phát hiện thay đổi
+            return oldItem.getName().equals(newItem.getName()) &&
+                    Objects.equals(oldItem.getImageUrl(), newItem.getImageUrl());
         }
     };
 

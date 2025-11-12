@@ -24,7 +24,7 @@ public interface TaskDao {
     @Delete
     void delete(Task task);
 
-    @Query("SELECT * FROM Task ORDER BY nextDue ASC")
+    @Query("SELECT * FROM Task ORDER BY expiration ASC")
     LiveData<List<Task>> getAllTasks();
 
     @Query("SELECT * FROM Task WHERE taskId = :id LIMIT 1")
@@ -36,6 +36,6 @@ public interface TaskDao {
     @Query("SELECT COUNT(*) FROM Task WHERE status != 'COMPLETED'")
     LiveData<Integer> getActiveTaskCount();
 
-    @Query("SELECT COUNT(*) FROM Task WHERE status != 'COMPLETED' AND nextDue BETWEEN :from AND :to")
+    @Query("SELECT COUNT(*) FROM Task WHERE status != 'COMPLETED' AND expiration BETWEEN :from AND :to")
     LiveData<Integer> getDueSoonTaskCount(LocalDateTime from, LocalDateTime to);
 }
