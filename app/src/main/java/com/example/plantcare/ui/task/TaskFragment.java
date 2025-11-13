@@ -112,12 +112,6 @@ public class TaskFragment extends Fragment implements TaskAdapter.OnItemMenuClic
     }
 
     @Override
-    public void onCompleteClick(TaskWithPlants taskWithPlants) {
-        viewModel.processTask(taskWithPlants.task, true);
-    }
-
-
-    @Override
     public void onResume() {
         super.onResume();
         if (getActivity() instanceof ToolbarAndNavControl) {

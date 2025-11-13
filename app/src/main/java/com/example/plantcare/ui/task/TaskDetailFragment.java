@@ -169,7 +169,7 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
         }
 
         task.setNote(binding.noteEdit.getText().toString());
-        task.setExpiration(task.getNotifyTime().plusHours(1));
+        task.setExpiration(task.getNotifyTime().plusHours(2));
         task.setStatus(Status.SCHEDULED);
 
         return task;

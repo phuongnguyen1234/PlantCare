@@ -36,8 +36,4 @@ public class TaskScopeRepository {
     public LiveData<List<TaskScope>> getPlantsByTaskId(int taskId) {
         return taskScopeDao.getPlantsByTaskId(taskId);
     }
-
-    public void replaceAllByTaskId(int taskId, List<TaskScope> newScopes) {
-        executorService.execute(() -> taskScopeDao.replaceAllByTaskId(taskId, newScopes));
-    }
 }

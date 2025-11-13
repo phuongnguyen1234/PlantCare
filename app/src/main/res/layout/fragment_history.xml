@@ -1,6 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:text="History"
-    android:textSize="20sp" />
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    >
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@color/layout_background_color">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="57dp"
+            android:layout_marginTop="5dp"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/search_edit"
+                android:layout_width="320dp"
+                android:layout_height="47dp"
+                android:layout_gravity="center"
+                android:background="@drawable/search_edit_background"
+                android:drawableEnd="@drawable/ic_search_black_24dp"
+                android:ems="10"
+                android:foregroundGravity="center"
+                android:hint="Search here"
+                android:inputType="text"
+                android:paddingLeft="20dp"
+                android:paddingEnd="15dp"
+                 />
+
+            <ImageButton
+                android:id="@+id/btnHistoryFilter"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="10dp"
+                android:background="@color/layout_background_color"
+                app:srcCompat="@drawable/ic_filter_black_24dp" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvHistory"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="10dp"
+            android:paddingTop="20dp" />
+    </LinearLayout>
+</layout>
