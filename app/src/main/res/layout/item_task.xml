@@ -14,12 +14,15 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="8dp"
         android:layout_marginVertical="4dp"
+        app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="16dp"
-        app:cardElevation="4dp">
+        app:cardElevation="4dp"
+        app:strokeWidth="0dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="120dp"
             android:padding="16dp">
 
             <ImageView
@@ -29,7 +32,8 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                android:src="@android:drawable/ic_dialog_info" />
+                app:taskIcon="@{task.type}"
+                tools:src="@drawable/water_drop" />
 
             <TextView
                 android:id="@+id/task_name"
@@ -38,70 +42,78 @@
                 android:layout_marginStart="16dp"
                 android:text="@{task.name}"
                 android:textAppearance="?attr/textAppearanceHeadline6"
-                app:layout_constraintStart_toEndOf="@id/task_icon"
                 app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toEndOf="@id/task_icon"
                 app:layout_constraintEnd_toStartOf="@+id/task_status_chip"
-                tools:text="Tưới nước" />
+                app:layout_constraintBottom_toTopOf="@+id/plant_name"
+                app:layout_constraintVertical_chainStyle="packed"
+                app:layout_constraintVertical_bias="0"
+                tools:text="Tưới nước buổi sáng" />
 
             <TextView
                 android:id="@+id/plant_name"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Cho Cây sen đá" 
-                app:layout_constraintStart_toStartOf="@id/task_name"
-                app:layout_constraintTop_toBottomOf="@id/task_name"
-                app:layout_constraintEnd_toEndOf="@id/task_name"/>
+                tools:text="Cho Cây sen đá, Xương rồng và 2 cây khác"
+                android:layout_marginBottom="4dp"
+                app:layout_constraintBottom_toTopOf="@+id/time_icon"
+                app:layout_constraintStart_toStartOf="@+id/task_name"
+                app:layout_constraintEnd_toEndOf="@+id/task_name"/>
 
             <ImageView
                 android:id="@+id/time_icon"
                 android:layout_width="16dp"
                 android:layout_height="16dp"
-                android:layout_marginTop="8dp"
                 android:src="@android:drawable/ic_lock_idle_alarm"
                 app:tint="?attr/colorOnSurface"
-                app:layout_constraintStart_toStartOf="@id/task_name"
-                app:layout_constraintTop_toBottomOf="@id/plant_name" />
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="@id/task_name" />
 
             <TextView
                 android:id="@+id/task_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="@{task.notifyTime.toString()}"
-                tools:text="07:00:00 05/11/2025"
+                app:formattedDateTime="@{task.notifyTime}"
+                tools:text="07:00 05/11/2025"
                 app:layout_constraintStart_toEndOf="@id/time_icon"
                 app:layout_constraintBottom_toBottomOf="@id/time_icon"
                 app:layout_constraintTop_toTopOf="@id/time_icon" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/task_status_chip"
+                style="@style/Widget.MaterialComponents.Chip.Action"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:layout_constraintEnd_toStartOf="@+id/task_menu"
-                app:layout_constraintTop_toTopOf="parent"
-                android:layout_marginEnd="8dp"
                 android:text="@{task.status.getDisplayName()}"
-                tools:text="Lên lịch" />
+                app:chipMinHeight="32dp"
+                android:textSize="12sp"
+                app:chipStatusColor="@{task.status}"
+                app:layout_constraintTop_toTopOf="@+id/task_menu"
+                app:layout_constraintBottom_toBottomOf="@+id/task_menu"
+                app:layout_constraintEnd_toStartOf="@+id/task_menu"
+                android:layout_marginEnd="8dp"
+                tools:text="Sẵn sàng" />
 
             <ImageButton
                 android:id="@+id/task_menu"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/menu_dots_vertical"
+                android:scaleType="centerInside"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_menu_more"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@android:color/black"/>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/complete_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Hoàn thành"
+                app:backgroundTint="@color/title_color"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                android:layout_marginTop="8dp"
-                app:layout_constraintTop_toBottomOf="@+id/task_status_chip"/>
+                app:layout_constraintBottom_toBottomOf="parent"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

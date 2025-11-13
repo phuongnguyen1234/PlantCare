@@ -4,17 +4,21 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.plantcare.R;
+import com.example.plantcare.data.model.TaskWithPlants;
 import com.example.plantcare.databinding.FragmentTaskBinding;
 import com.example.plantcare.ui.main.ToolbarAndNavControl;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-public class TaskFragment extends Fragment {
+public class TaskFragment extends Fragment implements TaskAdapter.OnItemMenuClickListener {
 
     private TaskViewModel viewModel;
     private FragmentTaskBinding binding;
@@ -35,30 +39,81 @@ public class TaskFragment extends Fragment {
         binding.setViewModel(viewModel);
         binding.setLifecycleOwner(getViewLifecycleOwner());
 
+        setupRecyclerView();
+        setupNavigation();
+
+        binding.fabLayout.fab.setVisibility(View.VISIBLE);
+        binding.fabLayout.fab.setOnClickListener(v -> viewModel.onFabClicked());
+    }
+
+    private void setupRecyclerView() {
         adapter = new TaskAdapter();
+        adapter.setOnItemMenuClickListener(this);
         binding.rvTasks.setAdapter(adapter);
 
-        viewModel.getAllTasks().observe(getViewLifecycleOwner(), tasks -> {
+        viewModel.getAllTasksWithPlants().observe(getViewLifecycleOwner(), tasks -> {
             if (tasks != null) {
                 adapter.submitList(tasks);
             }
         });
+    }
 
-        viewModel.navigateToTaskDetail.observe(getViewLifecycleOwner(), navigate -> {
+    private void setupNavigation() {
+        viewModel.navigateToAddTask.observe(getViewLifecycleOwner(), navigate -> {
             if (navigate) {
                 getParentFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, new TaskDetailFragment())
-                    .addToBackStack(null) // Allows user to press back to return to the list
-                    .commit();
-                viewModel.onNavigatedToTaskDetail();
+                        .replace(R.id.fragment_container, new TaskDetailFragment())
+                        .addToBackStack(null)
+                        .commit();
+                viewModel.onNavigatedToAddTask();
+            }
+        });
+
+        viewModel.navigateToEditTask.observe(getViewLifecycleOwner(), taskId -> {
+            if (taskId != null) {
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, TaskDetailFragment.newInstance(taskId))
+                        .addToBackStack(null)
+                        .commit();
+                viewModel.onNavigatedToEditTask();
             }
         });
     }
 
     @Override
+    public void onEditClick(int taskId) {
+        viewModel.onEditTask(taskId);
+    }
+
+    @Override
+    public void onDeleteClick(TaskWithPlants taskWithPlants) {
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_confirm_delete, null);
+        builder.setView(dialogView);
+
+        final AlertDialog dialog = builder.create();
+
+        Button btnCancel = dialogView.findViewById(R.id.btn_cancel);
+        Button btnDelete = dialogView.findViewById(R.id.btn_delete);
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        btnDelete.setOnClickListener(v -> {
+            viewModel.deleteTask(taskWithPlants.task);
+            dialog.dismiss();
+        });
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        dialog.show();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
-        // Show the main toolbar and navigation when this fragment is visible
         if (getActivity() instanceof ToolbarAndNavControl) {
             ((ToolbarAndNavControl) getActivity()).showToolbarAndNav(true);
         }
@@ -67,6 +122,6 @@ public class TaskFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        binding = null; // Avoid memory leaks
+        binding = null;
     }
 }

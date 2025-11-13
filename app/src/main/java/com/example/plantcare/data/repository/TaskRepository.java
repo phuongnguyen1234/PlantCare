@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData;
 import com.example.plantcare.data.AppDatabase;
 import com.example.plantcare.data.dao.TaskDao;
 import com.example.plantcare.data.entity.Task;
+import com.example.plantcare.data.model.TaskWithPlants;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -25,6 +26,10 @@ public class TaskRepository {
         executorService.execute(() -> taskDao.insert(task));
     }
 
+    public long insertAndGetId(Task task) {
+        return taskDao.insert(task);
+    }
+
     public void update(Task task) {
         executorService.execute(() -> taskDao.update(task));
     }
@@ -33,7 +38,11 @@ public class TaskRepository {
         executorService.execute(() -> taskDao.delete(task));
     }
 
-    public LiveData<List<Task>> getAllTasks() {
-        return taskDao.getAllTasks();
+    public LiveData<List<TaskWithPlants>> getAllTasksWithPlants() {
+        return taskDao.getAllTasksWithPlants();
+    }
+
+    public LiveData<Task> getTaskById(int taskId) {
+        return taskDao.getTaskById(taskId);
     }
 }

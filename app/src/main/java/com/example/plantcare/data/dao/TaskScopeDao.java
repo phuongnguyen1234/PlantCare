@@ -19,6 +19,9 @@ public interface TaskScopeDao {
     @Query("DELETE FROM TaskScope WHERE plantId = :plantId AND taskId = :taskId")
     void delete(int plantId, int taskId);
 
+    @Query("DELETE FROM TaskScope WHERE taskId = :taskId")
+    void deleteByTaskId(int taskId);
+
     @Query("SELECT * FROM TaskScope WHERE plantId = :plantId")
     LiveData<List<TaskScope>> getTasksByPlantId(int plantId);
 
