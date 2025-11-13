@@ -1,0 +1,398 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 5,
+    "identityHash": "a9654281ae547ee813a503e31f64fbf0",
+    "entities": [
+      {
+        "tableName": "Plant",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`plantId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `datePlanted` TEXT NOT NULL, `imageUrl` TEXT, `temperatureRange` TEXT, `humidityRange` TEXT, `waterFrequency` INTEGER NOT NULL, `fertilizerFrequency` INTEGER NOT NULL, `lightFrequency` INTEGER NOT NULL, `waterUnit` TEXT, `fertilizerUnit` TEXT, `lightUnit` TEXT, `note` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "plantId",
+            "columnName": "plantId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "datePlanted",
+            "columnName": "datePlanted",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "imageUrl",
+            "columnName": "imageUrl",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "temperatureRange",
+            "columnName": "temperatureRange",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "humidityRange",
+            "columnName": "humidityRange",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "waterFrequency",
+            "columnName": "waterFrequency",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fertilizerFrequency",
+            "columnName": "fertilizerFrequency",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lightFrequency",
+            "columnName": "lightFrequency",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "waterUnit",
+            "columnName": "waterUnit",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "fertilizerUnit",
+            "columnName": "fertilizerUnit",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lightUnit",
+            "columnName": "lightUnit",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "plantId"
+          ]
+        }
+      },
+      {
+        "tableName": "Task",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`taskId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `type` TEXT NOT NULL, `frequency` INTEGER NOT NULL, `frequencyUnit` TEXT, `notifyStart` TEXT, `notifyEnd` TEXT, `isRepeat` INTEGER NOT NULL, `status` TEXT NOT NULL, `expiration` TEXT, `notifyTime` TEXT NOT NULL, `note` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "frequency",
+            "columnName": "frequency",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "frequencyUnit",
+            "columnName": "frequencyUnit",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "notifyStart",
+            "columnName": "notifyStart",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "notifyEnd",
+            "columnName": "notifyEnd",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "isRepeat",
+            "columnName": "isRepeat",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "expiration",
+            "columnName": "expiration",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "notifyTime",
+            "columnName": "notifyTime",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "taskId"
+          ]
+        }
+      },
+      {
+        "tableName": "TaskScope",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`plantId` INTEGER NOT NULL, `taskId` INTEGER NOT NULL, PRIMARY KEY(`plantId`, `taskId`), FOREIGN KEY(`plantId`) REFERENCES `Plant`(`plantId`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`taskId`) REFERENCES `Task`(`taskId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "plantId",
+            "columnName": "plantId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskId",
+            "columnName": "taskId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "plantId",
+            "taskId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_TaskScope_plantId",
+            "unique": false,
+            "columnNames": [
+              "plantId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_TaskScope_plantId` ON `${TABLE_NAME}` (`plantId`)"
+          },
+          {
+            "name": "index_TaskScope_taskId",
+            "unique": false,
+            "columnNames": [
+              "taskId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_TaskScope_taskId` ON `${TABLE_NAME}` (`taskId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Plant",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "plantId"
+            ],
+            "referencedColumns": [
+              "plantId"
+            ]
+          },
+          {
+            "table": "Task",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "taskId"
+            ],
+            "referencedColumns": [
+              "taskId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "Journal",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`journalId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `plantId` INTEGER NOT NULL, `plantName` TEXT NOT NULL, `dateCreated` TEXT NOT NULL, `content` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "journalId",
+            "columnName": "journalId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "plantId",
+            "columnName": "plantId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "plantName",
+            "columnName": "plantName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dateCreated",
+            "columnName": "dateCreated",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "content",
+            "columnName": "content",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "journalId"
+          ]
+        }
+      },
+      {
+        "tableName": "JournalImage",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`imageId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `journalId` INTEGER NOT NULL, `imageUrl` TEXT NOT NULL, `position` INTEGER NOT NULL, FOREIGN KEY(`journalId`) REFERENCES `Journal`(`journalId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "imageId",
+            "columnName": "imageId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "journalId",
+            "columnName": "journalId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "imageUrl",
+            "columnName": "imageUrl",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "imageId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_JournalImage_journalId",
+            "unique": false,
+            "columnNames": [
+              "journalId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_JournalImage_journalId` ON `${TABLE_NAME}` (`journalId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Journal",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "journalId"
+            ],
+            "referencedColumns": [
+              "journalId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "History",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`historyId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `taskName` TEXT NOT NULL, `taskType` TEXT NOT NULL, `status` TEXT NOT NULL, `content` TEXT NOT NULL, `notifyTime` TEXT NOT NULL, `dateCompleted` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "historyId",
+            "columnName": "historyId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskName",
+            "columnName": "taskName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "taskType",
+            "columnName": "taskType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "content",
+            "columnName": "content",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notifyTime",
+            "columnName": "notifyTime",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dateCompleted",
+            "columnName": "dateCompleted",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "historyId"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a9654281ae547ee813a503e31f64fbf0')"
+    ]
+  }
+}
