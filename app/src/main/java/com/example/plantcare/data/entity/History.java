@@ -2,12 +2,14 @@ package com.example.plantcare.data.entity;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 import com.example.plantcare.data.enums.Status;
 import com.example.plantcare.data.enums.TaskType;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Entity(tableName = "History")
 public class History {
@@ -92,5 +94,18 @@ public class History {
 
     public void setDateCompleted(LocalDateTime dateCompleted) {
         this.dateCompleted = dateCompleted;
+    }
+    // thêm Date formater phương thức từ đây _-----
+    @Ignore
+    private static final DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy");
+
+    public String getFormattedNotifyTime() {
+        if (notifyTime == null) return "";
+        return notifyTime.format(formatter);
+    }
+
+    public String getFormattedCompleteTime() {
+        if (dateCompleted == null) return "";
+        return dateCompleted.format(formatter);
     }
 }

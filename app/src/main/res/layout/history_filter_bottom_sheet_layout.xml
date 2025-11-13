@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
+
     <com.google.android.material.bottomsheet.BottomSheetDragHandleView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
@@ -56,27 +57,6 @@
             android:paddingEnd="10dp" />
 
         <TextView
-            android:id="@+id/lblCompleteDate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Hoàn thành ngày"
-            android:textSize="18dp" />
-
-        <EditText
-            android:id="@+id/tvCompleteDate"
-            android:layout_width="match_parent"
-            android:layout_height="43dp"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/history_edit_text_background_shape"
-            android:drawableEnd="@drawable/ic_calendar_black_24dp"
-            android:ems="10"
-            android:hint="Tất cả"
-            android:inputType="text"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp" />
-
-        <TextView
             android:id="@+id/lblStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -88,7 +68,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:paddingLeft="40dp">
 
             <CheckBox
@@ -103,7 +83,7 @@
                 android:id="@+id/cbMissStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
+
                 android:text="Bỏ lỡ"
                 android:textSize="18dp" />
         </LinearLayout>
