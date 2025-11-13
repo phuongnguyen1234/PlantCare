@@ -16,3 +16,5 @@ local.properties
 /.idea/deviceManager.xml
 /.idea/deploymentTargetSelector.xml
 /.idea/jsonSchemas/
+/app/schemas/
+/.idea/inspectionProfiles/Project_Default.xml
