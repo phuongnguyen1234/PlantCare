@@ -12,7 +12,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0.1"
+        versionName = "1.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -63,6 +63,6 @@ dependencies {
     implementation("com.github.PhilJay:MPAndroidChart:3.1.0")
 
     // Glide for image loading
-    implementation("com.github.bumptech.glide:glide:4.12.0")
-    annotationProcessor("com.github.bumptech.glide:compiler:4.12.0")
+    implementation("com.github.bumptech.glide:glide:5.0.5")
+    annotationProcessor("com.github.bumptech.glide:compiler:5.0.5")
 }
