@@ -3,6 +3,7 @@ package com.example.plantcare.data.dao;
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Transaction;
 
@@ -13,7 +14,7 @@ import java.util.List;
 @Dao
 public interface TaskScopeDao {
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     void insert(TaskScope taskScope);
 
     @Query("DELETE FROM TaskScope WHERE plantId = :plantId AND taskId = :taskId")
@@ -30,4 +31,12 @@ public interface TaskScopeDao {
 
     @Query("SELECT * FROM TaskScope WHERE plantId = :plantId")
     LiveData<List<TaskScope>> getTaskScopesByPlantId(int plantId);
+
+    @Transaction
+    default void replaceAllByTaskId(int taskId, List<TaskScope> newScopes) {
+        deleteByTaskId(taskId);
+        for (TaskScope scope : newScopes) {
+            insert(scope);
+        }
+    }
 }
