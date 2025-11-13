@@ -96,12 +96,13 @@ public class TaskDetailViewModel extends AndroidViewModel {
     public void onUpdateClicked(Task task) {
         executor.execute(() -> {
             taskRepository.update(task);
-            taskScopeRepository.deleteByTaskId(task.getTaskId());
+
             Set<Integer> plantIds = selectedPlantIds.getValue();
             if (plantIds != null) {
-                for (Integer plantId : plantIds) {
-                    taskScopeRepository.insert(new TaskScope(task.getTaskId(), plantId));
-                }
+                List<TaskScope> newScopes = plantIds.stream()
+                        .map(pid -> new TaskScope(task.getTaskId(), pid))
+                        .collect(Collectors.toList());
+                taskScopeRepository.replaceAllByTaskId(task.getTaskId(), newScopes);
             }
             _navigateBack.postValue(true);
         });

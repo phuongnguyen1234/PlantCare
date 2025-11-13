@@ -18,4 +18,8 @@ public enum Status implements DisplayableEnum{
         return displayName;
     }
 
+    // thêm hàm tiện ích để kiểm tra task còn hoạt động không
+    public boolean isActive() {
+        return this == SCHEDULED || this == READY;
+    }
 }

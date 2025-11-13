@@ -42,4 +42,11 @@ public interface TaskDao {
 
     @Query("SELECT COUNT(*) FROM Task WHERE status != 'COMPLETED' AND expiration BETWEEN :from AND :to")
     LiveData<Integer> getDueSoonTaskCount(LocalDateTime from, LocalDateTime to);
+
+    // Thêm các hàm sync (cho AlarmManager, Worker, Receiver)
+    @Query("SELECT * FROM Task ORDER BY notifyTime ASC")
+    List<Task> getAllTasksSync();
+
+    @Query("SELECT * FROM Task WHERE taskId = :id LIMIT 1")
+    Task getTaskSync(int id);
 }

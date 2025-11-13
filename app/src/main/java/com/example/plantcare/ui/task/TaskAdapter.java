@@ -1,8 +1,6 @@
 package com.example.plantcare.ui.task;
 
-import android.content.Context;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -16,7 +14,6 @@ import com.example.plantcare.data.model.TaskWithPlants;
 import com.example.plantcare.databinding.ItemTaskBinding;
 import com.example.plantcare.utils.MenuUtils;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskViewHolder> {
@@ -26,6 +23,7 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
     public interface OnItemMenuClickListener {
         void onEditClick(int taskId);
         void onDeleteClick(TaskWithPlants taskWithPlants);
+        void onCompleteClick(TaskWithPlants taskWithPlants);
     }
 
     public void setOnItemMenuClickListener(OnItemMenuClickListener listener) {
@@ -36,17 +34,21 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
         super(DIFF_CALLBACK);
     }
 
-    private static final DiffUtil.ItemCallback<TaskWithPlants> DIFF_CALLBACK = new DiffUtil.ItemCallback<TaskWithPlants>() {
-        @Override
-        public boolean areItemsTheSame(@NonNull TaskWithPlants oldItem, @NonNull TaskWithPlants newItem) {
-            return oldItem.task.getTaskId() == newItem.task.getTaskId();
-        }
+    private static final DiffUtil.ItemCallback<TaskWithPlants> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<TaskWithPlants>() {
+                @Override
+                public boolean areItemsTheSame(@NonNull TaskWithPlants oldItem, @NonNull TaskWithPlants newItem) {
+                    return oldItem.task.getTaskId() == newItem.task.getTaskId();
+                }
 
-        @Override
-        public boolean areContentsTheSame(@NonNull TaskWithPlants oldItem, @NonNull TaskWithPlants newItem) {
-            return oldItem.task.equals(newItem.task) && oldItem.plants.equals(newItem.plants);
-        }
-    };
+                @Override
+                public boolean areContentsTheSame(@NonNull TaskWithPlants oldItem, @NonNull TaskWithPlants newItem) {
+                    return oldItem.task.getName().equals(newItem.task.getName())
+                            && oldItem.task.getStatus().equals(newItem.task.getStatus())
+                            && oldItem.task.getType().equals(newItem.task.getType())
+                            && oldItem.plants.size() == newItem.plants.size();
+                }
+            };
 
     @NonNull
     @Override
@@ -68,25 +70,36 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
             super(binding.getRoot());
             this.binding = binding;
 
+            // Sự kiện click menu
             binding.taskMenu.setOnClickListener(v -> {
-                int position = getAdapterPosition();
+                int position = getBindingAdapterPosition();
                 if (position != RecyclerView.NO_POSITION) {
-                    TaskWithPlants taskWithPlants = ((TaskAdapter) getBindingAdapter()).getItem(position);
+                    TaskAdapter adapter = (TaskAdapter) getBindingAdapter();
+                    TaskWithPlants taskWithPlants = adapter.getItem(position);
+
                     MenuUtils.showCustomPopupMenu(v, R.menu.task_item_menu, item -> {
                         int itemId = item.getItemId();
+                        if (listener == null) return false;
+
                         if (itemId == R.id.menu_edit) {
-                            if (listener != null) {
-                                listener.onEditClick(taskWithPlants.task.getTaskId());
-                            }
+                            listener.onEditClick(taskWithPlants.task.getTaskId());
                             return true;
                         } else if (itemId == R.id.menu_delete) {
-                            if (listener != null) {
-                                listener.onDeleteClick(taskWithPlants);
-                            }
+                            listener.onDeleteClick(taskWithPlants);
                             return true;
                         }
                         return false;
                     });
+                }
+            });
+
+            // Nút hoàn thành
+            binding.completeButton.setOnClickListener(v -> {
+                int position = getBindingAdapterPosition();
+                if (position != RecyclerView.NO_POSITION && listener != null) {
+                    TaskAdapter adapter = (TaskAdapter) getBindingAdapter();
+                    TaskWithPlants taskWithPlants = adapter.getItem(position);
+                    listener.onCompleteClick(taskWithPlants);
                 }
             });
         }
@@ -102,6 +115,7 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
             } else {
                 binding.plantName.setText("Cho: Không có cây nào");
             }
+
             binding.executePendingBindings();
         }
     }
