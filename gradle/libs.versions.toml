@@ -11,6 +11,7 @@ legacySupportV4 = "1.0.0"
 lifecycleLivedataKtx = "2.9.3"
 lifecycleViewmodelKtx = "2.9.3"
 navigationFragment = "2.9.6"
+room = "2.8.3"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -27,4 +28,5 @@ navigation-fragment = { group = "androidx.navigation", name = "navigation-fragme
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+androidx-room = { id = "androidx.room", version.ref = "room" }
 

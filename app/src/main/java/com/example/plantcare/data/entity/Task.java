@@ -16,15 +16,14 @@ public class Task {
     private int taskId;
 
     @NonNull
-    private String name = "Công việc của tôi";
+    private String name;
 
     @NonNull
-    private TaskType type = TaskType.WATER;
+    private TaskType type;
 
-    private int frequency = 1;
+    private int frequency;
 
-    @NonNull
-    private FrequencyUnit frequencyUnit = FrequencyUnit.HOUR;
+    private FrequencyUnit frequencyUnit;
 
     private LocalDateTime notifyStart;
     private LocalDateTime notifyEnd;
@@ -32,10 +31,12 @@ public class Task {
 
     @NonNull
     private Status status = Status.SCHEDULED;
-    private LocalDateTime nextDue;
+
+    private LocalDateTime expiration;
 
     @NonNull
-    private LocalDateTime notifyTime = LocalDateTime.now();
+    private LocalDateTime notifyTime;
+
     private String note;
 
     public Task() {
@@ -100,12 +101,12 @@ public class Task {
         this.status = status;
     }
 
-    public LocalDateTime getNextDue() {
-        return nextDue;
+    public LocalDateTime getExpiration() {
+        return expiration;
     }
 
-    public void setNextDue(LocalDateTime nextDue) {
-        this.nextDue = nextDue;
+    public void setExpiration(LocalDateTime expiration) {
+        this.expiration = expiration;
     }
 
     public boolean isRepeat() {
@@ -133,7 +134,6 @@ public class Task {
         this.note = note;
     }
 
-    @NonNull
     public FrequencyUnit getFrequencyUnit() {
         return frequencyUnit;
     }

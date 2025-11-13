@@ -3,6 +3,7 @@ package com.example.plantcare.data;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.room.AutoMigration;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
@@ -24,8 +25,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-// Database version is now 3
-@Database(entities = {Plant.class, Task.class, TaskScope.class, Journal.class, JournalImage.class, History.class}, version = 3, exportSchema = false)
+// Database version is now 5
+@Database(
+        entities = {Plant.class, Task.class, TaskScope.class, Journal.class, JournalImage.class, History.class},
+        version = 5,
+        exportSchema = true,
+        autoMigrations = {@AutoMigration(from = 4, to = 5)}
+)
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
 
@@ -65,13 +71,36 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            // Create the new table with the new schema
+            database.execSQL(
+                    "CREATE TABLE `Task_new` (`taskId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `type` TEXT NOT NULL, `frequency` INTEGER NOT NULL, `frequencyUnit` TEXT, `notifyStart` TEXT, `notifyEnd` TEXT, `isRepeat` INTEGER NOT NULL, `status` TEXT NOT NULL, `expiration` TEXT, `notifyTime` TEXT NOT NULL, `note` TEXT)");
+
+            // Copy the data from the old table to the new table
+            database.execSQL(
+                    "INSERT INTO `Task_new` (`taskId`, `name`, `type`, `frequency`, `frequencyUnit`, `notifyStart`, `notifyEnd`, `isRepeat`, `status`, `expiration`, `notifyTime`, `note`) " +
+                    "SELECT `taskId`, `name`, `type`, `frequency`, `frequencyUnit`, `notifyStart`, `notifyEnd`, `isRepeat`, `status`, `nextDue`, `notifyTime`, `note` FROM `Task`");
+
+            // Remove the old table
+            database.execSQL("DROP TABLE `Task`");
+
+            // Change the table name to the correct one
+            database.execSQL("ALTER TABLE `Task_new` RENAME TO `Task`");
+
+            // Create the History table
+            database.execSQL("CREATE TABLE IF NOT EXISTS `History` (`historyId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `taskName` TEXT NOT NULL, `taskType` TEXT NOT NULL, `status` TEXT NOT NULL, `content` TEXT NOT NULL, `notifyTime` TEXT NOT NULL, `dateCompleted` TEXT)");
+        }
+    };
+
     public static AppDatabase getDatabase(final Context context) {
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                                     AppDatabase.class, "plant_care_database")
-                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                             .build();
                 }
             }

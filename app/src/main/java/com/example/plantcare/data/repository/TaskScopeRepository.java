@@ -25,7 +25,15 @@ public class TaskScopeRepository {
         executorService.execute(() -> taskScopeDao.insert(taskScope));
     }
 
+    public void deleteByTaskId(int taskId) {
+        executorService.execute(() -> taskScopeDao.deleteByTaskId(taskId));
+    }
+
     public LiveData<List<TaskScope>> getTaskScopesByPlantId(int plantId) {
         return taskScopeDao.getTaskScopesByPlantId(plantId);
+    }
+
+    public LiveData<List<TaskScope>> getPlantsByTaskId(int taskId) {
+        return taskScopeDao.getPlantsByTaskId(taskId);
     }
 }

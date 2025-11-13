@@ -53,9 +53,7 @@ public class PlantFragment extends Fragment implements OnItemMenuClickListener<P
         binding.rvPlants.setAdapter(plantAdapter);
 
         // Observe LiveData
-        mViewModel.getAllPlants().observe(getViewLifecycleOwner(), plants -> {
-            plantAdapter.submitList(plants);
-        });
+        observeViewModel();
 
         // Setup FAB
         binding.fabLayout.fab.setVisibility(View.VISIBLE);
@@ -64,6 +62,19 @@ public class PlantFragment extends Fragment implements OnItemMenuClickListener<P
                     .replace(R.id.fragment_container, new AddEditPlantFragment())
                     .addToBackStack(null)
                     .commit();
+        });
+    }
+
+    private void observeViewModel() {
+        mViewModel.getAllPlants().observe(getViewLifecycleOwner(), plants -> {
+            plantAdapter.submitList(plants);
+        });
+
+        mViewModel.toastMessage.observe(getViewLifecycleOwner(), message -> {
+            if (message != null) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                mViewModel.onToastMessageShown();
+            }
         });
     }
 
@@ -102,7 +113,6 @@ public class PlantFragment extends Fragment implements OnItemMenuClickListener<P
                 .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
                 .setPositiveButton("Xóa", (dialog, which) -> {
                     mViewModel.delete(plant);
-                    Toast.makeText(getContext(), "Đã xóa cây: " + plant.getName(), Toast.LENGTH_SHORT).show();
                 })
                 .show();
     }
