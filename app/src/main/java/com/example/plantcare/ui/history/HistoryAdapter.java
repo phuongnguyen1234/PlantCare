@@ -5,45 +5,49 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.plantcare.R;
 import com.example.plantcare.data.entity.History;
 import com.example.plantcare.databinding.ItemHistoryBinding;
 
+public class HistoryAdapter extends ListAdapter<History, HistoryAdapter.HistoryViewHolder> {
 
-import java.util.List;
-
-
-public class HistoryViewModelApdapter extends RecyclerView.Adapter<HistoryViewModelApdapter.HistoryViewHolder>{
-   List<History> historyList;
-
-    public HistoryViewModelApdapter(List<History> historyList) {
-        this.historyList = historyList;
+    public HistoryAdapter() {
+        super(DIFF_CALLBACK);
     }
+
+    private static final DiffUtil.ItemCallback<History> DIFF_CALLBACK = new DiffUtil.ItemCallback<History>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull History oldItem, @NonNull History newItem) {
+            return oldItem.getHistoryId() == newItem.getHistoryId();
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull History oldItem, @NonNull History newItem) {
+            return oldItem.equals(newItem);
+        }
+    };
 
     @NonNull
     @Override
     public HistoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         ItemHistoryBinding itemHistoryBinding = DataBindingUtil
-                .inflate(LayoutInflater.from(parent.getContext()), R.layout.item_history,parent,false);
-        // inflate inflate viewgroup type
+                .inflate(LayoutInflater.from(parent.getContext()), R.layout.item_history, parent, false);
         return new HistoryViewHolder(itemHistoryBinding);
     }
 
     @Override
     public void onBindViewHolder(@NonNull HistoryViewHolder holder, int position) {
-        History history = historyList.get(position);
+        History history = getItem(position);
         holder.itemHistoryBinding.setHistory(history);
     }
 
-    @Override
-    public int getItemCount() {
-        return historyList.size();
-    }
-
-    public class HistoryViewHolder extends RecyclerView.ViewHolder {
+    public static class HistoryViewHolder extends RecyclerView.ViewHolder {
         ItemHistoryBinding itemHistoryBinding;
+
         public HistoryViewHolder(@NonNull ItemHistoryBinding binding) {
             super(binding.getRoot());
             itemHistoryBinding = binding;

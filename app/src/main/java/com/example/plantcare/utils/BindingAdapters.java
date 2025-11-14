@@ -109,7 +109,7 @@ public class BindingAdapters {
                 imageView.setImageResource(R.drawable.sun);
                 break;
             default:
-                imageView.setImageResource(R.drawable.default_plant); // Mặc định cho trường hợp khác
+                imageView.setImageResource(R.drawable.task_dashboard); // Mặc định cho trường hợp khác
                 break;
         }
     }

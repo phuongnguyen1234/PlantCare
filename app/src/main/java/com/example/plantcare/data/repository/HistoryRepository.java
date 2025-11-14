@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData;
 import com.example.plantcare.data.AppDatabase;
 import com.example.plantcare.data.dao.HistoryDao;
 import com.example.plantcare.data.entity.History;
+import com.example.plantcare.data.enums.TaskType;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -34,6 +35,15 @@ public class HistoryRepository {
 
     public LiveData<List<History>> getAllHistory() {
         return historyDao.getAllHistory();
+    }
+
+    public LiveData<List<History>> getFilteredHistories(String taskType, List<String> statuses, String date, String searchQuery) {
+        String query = (searchQuery == null || searchQuery.isEmpty()) ? null : "%" + searchQuery + "%";
+        if (statuses == null || statuses.isEmpty()) {
+            return historyDao.getFilteredHistoriesWithoutStatus(taskType, date, query);
+        } else {
+            return historyDao.getFilteredHistoriesWithStatus(taskType, statuses, date, query);
+        }
     }
 
     public LiveData<List<History>> getHistoryByStatus(String status) {

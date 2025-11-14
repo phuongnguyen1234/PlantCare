@@ -23,9 +23,9 @@
             android:id="@+id/itemLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@{history.status == Status.COMPLETED ? @drawable/history_done_background_green : @drawable/history_miss_background_orange}"
             android:orientation="horizontal"
-            android:padding="10dp">
+            android:padding="10dp"
+            android:background="@color/white">
 
             <ImageView
                 android:id="@+id/imgAction"
@@ -56,6 +56,8 @@
                         android:text="@{history.taskName}"
                         android:textSize="21sp"
                         android:textStyle="bold"
+                        android:maxLines="1"
+                        android:ellipsize="end"
                         tools:text="Bón phân" />
 
                     <TextView

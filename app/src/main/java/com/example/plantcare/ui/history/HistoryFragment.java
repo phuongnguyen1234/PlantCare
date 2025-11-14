@@ -1,51 +1,81 @@
 package com.example.plantcare.ui.history;
 
 import android.app.DatePickerDialog;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.plantcare.R;
-import com.example.plantcare.data.entity.History;
 import com.example.plantcare.data.enums.Status;
 import com.example.plantcare.data.enums.TaskType;
-import com.example.plantcare.databinding.FragmentHistoryBinding; // Import lớp binding đúng
-
+import com.example.plantcare.databinding.FragmentHistoryBinding;
 import com.example.plantcare.ui.main.BaseFragment;
+import com.example.plantcare.utils.DropdownUtils;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.checkbox.MaterialCheckBox;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-// SỬA 1: Cung cấp kiểu generic FragmentHistoryBinding cho BaseFragment
 public class HistoryFragment extends BaseFragment<FragmentHistoryBinding> {
 
     private HistoryViewModel mViewModel;
+    private HistoryAdapter mAdapter;
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        // Gọi super.onViewCreated() để thiết lập Toolbar và nút Back
         super.onViewCreated(view, savedInstanceState);
 
-        binding.rvHistory.setLayoutManager(new LinearLayoutManager(getContext()));
-        setHistoryDataToRecycleView();
+        mViewModel = new ViewModelProvider(this).get(HistoryViewModel.class);
 
-        // Thêm listener cho nút filter
+        mAdapter = new HistoryAdapter();
+        binding.rvHistory.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.rvHistory.setAdapter(mAdapter);
+
         binding.btnHistoryFilter.setOnClickListener(v -> showFilterBottomSheet());
+
+        binding.searchEdit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                mViewModel.setSearchQuery(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        mViewModel.getHistories().observe(getViewLifecycleOwner(), histories -> {
+            mAdapter.submitList(histories);
+        });
+
+        mViewModel.isFilterActive.observe(getViewLifecycleOwner(), isActive -> {
+            int color = isActive ? ContextCompat.getColor(requireContext(), R.color.history_green) : ContextCompat.getColor(requireContext(), R.color.black);
+            binding.btnHistoryFilter.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+        });
     }
 
     private void showFilterBottomSheet() {
@@ -53,19 +83,48 @@ public class HistoryFragment extends BaseFragment<FragmentHistoryBinding> {
         View bottomSheetView = LayoutInflater.from(requireContext()).inflate(R.layout.history_filter_bottom_sheet_layout, null);
         bottomSheetDialog.setContentView(bottomSheetView);
 
+        SwitchMaterial filterSwitch = bottomSheetView.findViewById(R.id.filterSwitch);
+        LinearLayout filterContentGroup = bottomSheetView.findViewById(R.id.filterContentGroup);
         Button applyFilterButton = bottomSheetView.findViewById(R.id.btnApplyFilter);
+
         AutoCompleteTextView taskTypeTextView = bottomSheetView.findViewById(R.id.spnTaskType);
         TextInputEditText notifyDateEditText = bottomSheetView.findViewById(R.id.tvNotifyDate);
         MaterialCheckBox doneCheckbox = bottomSheetView.findViewById(R.id.cbDoneStatus);
         MaterialCheckBox missCheckbox = bottomSheetView.findViewById(R.id.cbMissStatus);
 
-        String[] tasks = {"Tưới nước", "Ánh sáng", "Bón phân", "Khác"};
-        ArrayAdapter<String> taskTypeAdapter = new ArrayAdapter<>(
-                requireContext(),
-                android.R.layout.simple_dropdown_item_1line,
-                tasks
-        );
-        taskTypeTextView.setAdapter(taskTypeAdapter);
+        DropdownUtils.setupEnumDropdown(taskTypeTextView, TaskType.class);
+
+        HistoryViewModel.FilterParams currentFilter = mViewModel.getFilterParams().getValue();
+        if (currentFilter != null && !currentFilter.isClear()) {
+            filterSwitch.setChecked(true);
+            if (currentFilter.taskType != null) {
+                try {
+                    TaskType taskType = TaskType.valueOf(currentFilter.taskType);
+                    taskTypeTextView.setText(taskType.getDisplayName(), false);
+                } catch (IllegalArgumentException e) {
+                    // Handle case where taskType name from filter is not a valid enum constant
+                    taskTypeTextView.setText("", false);
+                }
+            }
+            if (currentFilter.date != null) {
+                try {
+                    SimpleDateFormat fromDb = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                    SimpleDateFormat toUser = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                    Date parsedDate = fromDb.parse(currentFilter.date);
+                    if (parsedDate != null) {
+                        notifyDateEditText.setText(toUser.format(parsedDate));
+                    }
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (currentFilter.statuses != null) {
+                doneCheckbox.setChecked(currentFilter.statuses.contains(Status.COMPLETED.name()));
+                missCheckbox.setChecked(currentFilter.statuses.contains(Status.MISSED.name()));
+            }
+        } else {
+            filterSwitch.setChecked(false);
+        }
 
         final Calendar calendar = Calendar.getInstance();
         DatePickerDialog.OnDateSetListener dateSetListener = (datePicker, year, month, dayOfMonth) -> {
@@ -83,15 +142,59 @@ public class HistoryFragment extends BaseFragment<FragmentHistoryBinding> {
                     calendar.get(Calendar.DAY_OF_MONTH)).show();
         });
 
+        Runnable setFilterControlsEnabled = () -> {
+            boolean isEnabled = filterSwitch.isChecked();
+            for (int i = 0; i < filterContentGroup.getChildCount(); i++) {
+                View child = filterContentGroup.getChildAt(i);
+                child.setEnabled(isEnabled);
+                child.setAlpha(isEnabled ? 1.0f : 0.5f);
+            }
+            applyFilterButton.setEnabled(isEnabled);
+        };
+
+        setFilterControlsEnabled.run();
+
+        filterSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            setFilterControlsEnabled.run();
+            if (!isChecked) {
+                taskTypeTextView.setText("", false);
+                notifyDateEditText.setText("");
+                doneCheckbox.setChecked(false);
+                missCheckbox.setChecked(false);
+                mViewModel.setFilter(null, null, null);
+            }
+        });
+
         applyFilterButton.setOnClickListener(v -> {
-            String selectedTaskType = taskTypeTextView.getText().toString();
-            String selectedDate = notifyDateEditText.getText().toString();
-            boolean isDone = doneCheckbox.isChecked();
-            boolean isMissed = missCheckbox.isChecked();
+            String selectedDisplayName = taskTypeTextView.getText().toString();
+            TaskType selectedTaskType = DropdownUtils.getEnumValueFromDisplayName(TaskType.class, selectedDisplayName);
+            String taskTypeName = (selectedTaskType != null) ? selectedTaskType.name() : null;
 
-            String filterInfo = "Task: " + selectedTaskType + ", Date: " + selectedDate + ", Done: " + isDone + ", Missed: " + isMissed;
-            Toast.makeText(requireContext(), filterInfo, Toast.LENGTH_LONG).show();
+            List<String> statuses = new ArrayList<>();
+            if (doneCheckbox.isChecked()) {
+                statuses.add(Status.COMPLETED.name());
+            }
+            if (missCheckbox.isChecked()) {
+                statuses.add(Status.MISSED.name());
+            }
 
+            String date = null;
+            String inputDate = notifyDateEditText.getText().toString();
+            if (!inputDate.isEmpty()) {
+                try {
+                    SimpleDateFormat fromUser = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                    SimpleDateFormat toDb = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                    Date parsedDate = fromUser.parse(inputDate);
+                    if (parsedDate != null) {
+                        date = toDb.format(parsedDate);
+                    }
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getContext(), "Invalid date format", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            mViewModel.setFilter(taskTypeName, statuses, date);
             bottomSheetDialog.dismiss();
         });
 
@@ -99,69 +202,12 @@ public class HistoryFragment extends BaseFragment<FragmentHistoryBinding> {
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        mViewModel = new ViewModelProvider(this).get(HistoryViewModel.class);
-        // TODO: Quan sát LiveData từ ViewModel và gọi adapter.submitList(newList)
-    }
-
-    @Override
     protected int getLayoutResourceId() {
-        // SỬA 3: Cung cấp ID layout chính xác cho BaseFragment
         return R.layout.fragment_history;
     }
 
     @Override
     protected String getToolbarTitle() {
         return "Lịch sử chăm sóc";
-    }
-
-    private void setHistoryDataToRecycleView(){
-        // 'binding' đã được khởi tạo trong BaseFragment nên bạn có thể dùng trực tiếp
-        HistoryViewModelApdapter historyViewModelApdapter = new HistoryViewModelApdapter(getListHistory());
-        binding.rvHistory.setAdapter(historyViewModelApdapter);
-    }
-    private List<History> getListHistory(){
-        return createMockData();
-    }
-    private List<History> createMockData() {
-        List<History> mockList = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now();
-
-        History taskDoneWater = new History();
-        taskDoneWater.setHistoryId(1);
-        taskDoneWater.setTaskName("Tưới cây");
-        taskDoneWater.setTaskType(TaskType.WATER);
-        taskDoneWater.setStatus(Status.COMPLETED);
-        taskDoneWater.setNotifyTime(now.minusHours(5));
-        taskDoneWater.setDateCompleted(now.minusHours(4).minusMinutes(30));
-        mockList.add(taskDoneWater);
-
-        History taskMissedFertilize = new History();
-        taskMissedFertilize.setHistoryId(2);
-        taskMissedFertilize.setTaskName("Bón phân");
-        taskMissedFertilize.setTaskType(TaskType.FERTILIZE);
-        taskMissedFertilize.setStatus(Status.MISSED);
-        taskMissedFertilize.setNotifyTime(now.minusDays(1).minusHours(2));
-        mockList.add(taskMissedFertilize);
-
-        History taskDoneLight = new History();
-        taskDoneLight.setHistoryId(3);
-        taskDoneLight.setTaskName("Phơi nắng cho cây ABC");
-        taskDoneLight.setTaskType(TaskType.LIGHT);
-        taskDoneLight.setStatus(Status.COMPLETED);
-        taskDoneLight.setNotifyTime(now.minusDays(2).withHour(8).withMinute(0));
-        taskDoneLight.setDateCompleted(now.minusDays(2).withHour(8).withMinute(15));
-        mockList.add(taskDoneLight);
-
-        History taskMissedOther = new History();
-        taskMissedOther.setHistoryId(4);
-        taskMissedOther.setTaskName("Kiểm tra sâu bệnh");
-        taskMissedOther.setTaskType(TaskType.OTHER);
-        taskMissedOther.setStatus(Status.MISSED);
-        taskMissedOther.setNotifyTime(now.minusDays(3));
-        mockList.add(taskMissedOther);
-
-        return mockList;
     }
 }
