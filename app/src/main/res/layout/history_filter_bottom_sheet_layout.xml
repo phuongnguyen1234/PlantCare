@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical">
 
     <com.google.android.material.bottomsheet.BottomSheetDragHandleView
@@ -11,94 +11,96 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingLeft="20dp"
-        android:paddingEnd="20dp"
-        android:paddingRight="20dp"
-        android:paddingBottom="20dp">
+        android:padding="20dp">
 
         <TextView
             android:id="@+id/lblTypeTask"
+            style="@style/TextAppearance.Material3.TitleMedium"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Loại công việc"
-            android:textSize="18dp" />
+            android:text="Loại công việc" />
 
-        <Spinner
-            android:id="@+id/spnTaskType"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/taskTypeMenu"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
-            android:layout_height="43dp"
-            android:layout_margin="5dp"
-            android:layout_marginTop="4dp"
-            android:background="@drawable/history_edit_text_background_shape"
-            android:drawableEnd="@drawable/ic_search_black_24dp"
-            android:gravity="center" />
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="Chọn loại công việc">
+
+            <AutoCompleteTextView
+                android:id="@+id/spnTaskType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
+
+        </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
             android:id="@+id/lblNotifyDate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Nhắc nhở ngày"
-            android:textSize="18dp" />
-
-        <EditText
-            android:id="@+id/tvNotifyDate"
-            android:layout_width="match_parent"
-            android:layout_height="43dp"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/history_edit_text_background_shape"
-            android:drawableEnd="@drawable/ic_calendar_black_24dp"
-            android:ems="10"
-            android:hint="Tất cả"
-            android:inputType="text"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp" />
-
-        <TextView
-            android:id="@+id/lblStatus"
+            style="@style/TextAppearance.Material3.TitleMedium"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Trạng thái"
-            android:textSize="18dp" />
+            android:text="Nhắc nhở ngày" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/notifyDateLayout"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="Tất cả"
+            app:endIconDrawable="@drawable/ic_calendar_black_24dp"
+            app:endIconMode="custom">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/tvNotifyDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/lblStatus"
+            style="@style/TextAppearance.Material3.TitleMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Trạng thái" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:orientation="vertical"
-            android:paddingLeft="40dp">
+            android:layout_marginTop="8dp"
+            android:orientation="vertical">
 
-            <CheckBox
+            <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/cbDoneStatus"
+                style="@style/TextAppearance.Material3.BodyLarge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingEnd="20dp"
-                android:text="Hoàn thành"
-                android:textSize="18dp" />
+                android:text="Hoàn thành" />
 
-            <CheckBox
+            <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/cbMissStatus"
+                style="@style/TextAppearance.Material3.BodyLarge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-
-                android:text="Bỏ lỡ"
-                android:textSize="18dp" />
+                android:text="Bỏ lỡ" />
         </LinearLayout>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnApplyFilter"
-            android:layout_width="371dp"
-            android:layout_height="53dp"
-            android:layout_gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:backgroundTint="#FA16A34A"
-            android:paddingStart="24dp"
+            android:paddingVertical="12dp"
             android:text="Áp dụng"
-            app:backgroundTint="#16A34A"
-            app:cornerRadius="10dp" />
+            app:backgroundTint="#16A34A" />
     </LinearLayout>
 
 </LinearLayout>

@@ -1,10 +1,12 @@
 package com.example.plantcare.ui.history;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.View;import android.widget.ArrayAdapter;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -20,10 +22,15 @@ import com.example.plantcare.databinding.FragmentHistoryBinding; // Import lớp
 
 import com.example.plantcare.ui.main.BaseFragment;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.checkbox.MaterialCheckBox;
+import com.google.android.material.textfield.TextInputEditText;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 // SỬA 1: Cung cấp kiểu generic FragmentHistoryBinding cho BaseFragment
 public class HistoryFragment extends BaseFragment<FragmentHistoryBinding> {
@@ -47,19 +54,44 @@ public class HistoryFragment extends BaseFragment<FragmentHistoryBinding> {
         bottomSheetDialog.setContentView(bottomSheetView);
 
         Button applyFilterButton = bottomSheetView.findViewById(R.id.btnApplyFilter);
-        Spinner spinner = bottomSheetView.findViewById(R.id.spnTaskType);
+        AutoCompleteTextView taskTypeTextView = bottomSheetView.findViewById(R.id.spnTaskType);
+        TextInputEditText notifyDateEditText = bottomSheetView.findViewById(R.id.tvNotifyDate);
+        MaterialCheckBox doneCheckbox = bottomSheetView.findViewById(R.id.cbDoneStatus);
+        MaterialCheckBox missCheckbox = bottomSheetView.findViewById(R.id.cbMissStatus);
 
         String[] tasks = {"Tưới nước", "Ánh sáng", "Bón phân", "Khác"};
-        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
+        ArrayAdapter<String> taskTypeAdapter = new ArrayAdapter<>(
                 requireContext(),
-                android.R.layout.simple_spinner_item,
+                android.R.layout.simple_dropdown_item_1line,
                 tasks
         );
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(spinnerAdapter);
+        taskTypeTextView.setAdapter(taskTypeAdapter);
+
+        final Calendar calendar = Calendar.getInstance();
+        DatePickerDialog.OnDateSetListener dateSetListener = (datePicker, year, month, dayOfMonth) -> {
+            calendar.set(Calendar.YEAR, year);
+            calendar.set(Calendar.MONTH, month);
+            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            notifyDateEditText.setText(sdf.format(calendar.getTime()));
+        };
+
+        notifyDateEditText.setOnClickListener(v -> {
+            new DatePickerDialog(requireContext(), dateSetListener,
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)).show();
+        });
 
         applyFilterButton.setOnClickListener(v -> {
-            Toast.makeText(requireContext(), "Áp dụng bộ lọc...", Toast.LENGTH_SHORT).show();
+            String selectedTaskType = taskTypeTextView.getText().toString();
+            String selectedDate = notifyDateEditText.getText().toString();
+            boolean isDone = doneCheckbox.isChecked();
+            boolean isMissed = missCheckbox.isChecked();
+
+            String filterInfo = "Task: " + selectedTaskType + ", Date: " + selectedDate + ", Done: " + isDone + ", Missed: " + isMissed;
+            Toast.makeText(requireContext(), filterInfo, Toast.LENGTH_LONG).show();
+
             bottomSheetDialog.dismiss();
         });
 
