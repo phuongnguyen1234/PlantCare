@@ -29,8 +29,8 @@ import java.util.concurrent.Executors;
 @Database(
         entities = {Plant.class, Task.class, TaskScope.class, Journal.class, JournalImage.class, History.class},
         version = 5,
-        exportSchema = true,
-        autoMigrations = {@AutoMigration(from = 4, to = 5)}
+        exportSchema = true
+
 )
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
