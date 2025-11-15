@@ -1,6 +1,5 @@
 package com.example.plantcare.ui.history;
 
-import android.app.DatePickerDialog;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.os.Bundle;
@@ -8,9 +7,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AutoCompleteTextView;
-import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,17 +19,17 @@ import com.example.plantcare.R;
 import com.example.plantcare.data.enums.Status;
 import com.example.plantcare.data.enums.TaskType;
 import com.example.plantcare.databinding.FragmentHistoryBinding;
+import com.example.plantcare.databinding.HistoryFilterBottomSheetLayoutBinding;
 import com.example.plantcare.ui.main.BaseFragment;
+import com.example.plantcare.utils.DatePickerUtils;
 import com.example.plantcare.utils.DropdownUtils;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.checkbox.MaterialCheckBox;
-import com.google.android.material.switchmaterial.SwitchMaterial;
-import com.google.android.material.textfield.TextInputEditText;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -80,30 +76,39 @@ public class HistoryFragment extends BaseFragment<FragmentHistoryBinding> {
 
     private void showFilterBottomSheet() {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(requireContext());
-        View bottomSheetView = LayoutInflater.from(requireContext()).inflate(R.layout.history_filter_bottom_sheet_layout, null);
-        bottomSheetDialog.setContentView(bottomSheetView);
+        HistoryFilterBottomSheetLayoutBinding bottomSheetBinding = HistoryFilterBottomSheetLayoutBinding.inflate(getLayoutInflater());
+        bottomSheetDialog.setContentView(bottomSheetBinding.getRoot());
 
-        SwitchMaterial filterSwitch = bottomSheetView.findViewById(R.id.filterSwitch);
-        LinearLayout filterContentGroup = bottomSheetView.findViewById(R.id.filterContentGroup);
-        Button applyFilterButton = bottomSheetView.findViewById(R.id.btnApplyFilter);
+        DropdownUtils.setupEnumDropdown(bottomSheetBinding.spnTaskType, TaskType.class);
 
-        AutoCompleteTextView taskTypeTextView = bottomSheetView.findViewById(R.id.spnTaskType);
-        TextInputEditText notifyDateEditText = bottomSheetView.findViewById(R.id.tvNotifyDate);
-        MaterialCheckBox doneCheckbox = bottomSheetView.findViewById(R.id.cbDoneStatus);
-        MaterialCheckBox missCheckbox = bottomSheetView.findViewById(R.id.cbMissStatus);
-
-        DropdownUtils.setupEnumDropdown(taskTypeTextView, TaskType.class);
+        bottomSheetBinding.tvNotifyDate.setOnClickListener(v -> {
+            LocalDate initialDate = LocalDate.now();
+            String currentDateString = bottomSheetBinding.tvNotifyDate.getText().toString();
+            DateTimeFormatter userFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            if (!currentDateString.isEmpty()) {
+                try {
+                    initialDate = LocalDate.parse(currentDateString, userFormatter);
+                } catch (Exception e) {
+                    // Ignore parse error, use today's date
+                }
+            }
+            DatePickerUtils.showDatePickerDialog(
+                    getContext(),
+                    initialDate,
+                    selectedDate -> bottomSheetBinding.tvNotifyDate.setText(selectedDate.format(userFormatter))
+            );
+        });
 
         HistoryViewModel.FilterParams currentFilter = mViewModel.getFilterParams().getValue();
         if (currentFilter != null && !currentFilter.isClear()) {
-            filterSwitch.setChecked(true);
+            bottomSheetBinding.filterSwitch.setChecked(true);
             if (currentFilter.taskType != null) {
                 try {
                     TaskType taskType = TaskType.valueOf(currentFilter.taskType);
-                    taskTypeTextView.setText(taskType.getDisplayName(), false);
+                    bottomSheetBinding.spnTaskType.setText(taskType.getDisplayName(), false);
                 } catch (IllegalArgumentException e) {
                     // Handle case where taskType name from filter is not a valid enum constant
-                    taskTypeTextView.setText("", false);
+                    bottomSheetBinding.spnTaskType.setText("", false);
                 }
             }
             if (currentFilter.date != null) {
@@ -112,74 +117,58 @@ public class HistoryFragment extends BaseFragment<FragmentHistoryBinding> {
                     SimpleDateFormat toUser = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
                     Date parsedDate = fromDb.parse(currentFilter.date);
                     if (parsedDate != null) {
-                        notifyDateEditText.setText(toUser.format(parsedDate));
+                        bottomSheetBinding.tvNotifyDate.setText(toUser.format(parsedDate));
                     }
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
             }
             if (currentFilter.statuses != null) {
-                doneCheckbox.setChecked(currentFilter.statuses.contains(Status.COMPLETED.name()));
-                missCheckbox.setChecked(currentFilter.statuses.contains(Status.MISSED.name()));
+                bottomSheetBinding.cbDoneStatus.setChecked(currentFilter.statuses.contains(Status.COMPLETED.name()));
+                bottomSheetBinding.cbMissStatus.setChecked(currentFilter.statuses.contains(Status.MISSED.name()));
             }
         } else {
-            filterSwitch.setChecked(false);
+            bottomSheetBinding.filterSwitch.setChecked(false);
         }
 
-        final Calendar calendar = Calendar.getInstance();
-        DatePickerDialog.OnDateSetListener dateSetListener = (datePicker, year, month, dayOfMonth) -> {
-            calendar.set(Calendar.YEAR, year);
-            calendar.set(Calendar.MONTH, month);
-            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-            notifyDateEditText.setText(sdf.format(calendar.getTime()));
-        };
-
-        notifyDateEditText.setOnClickListener(v -> {
-            new DatePickerDialog(requireContext(), dateSetListener,
-                    calendar.get(Calendar.YEAR),
-                    calendar.get(Calendar.MONTH),
-                    calendar.get(Calendar.DAY_OF_MONTH)).show();
-        });
-
         Runnable setFilterControlsEnabled = () -> {
-            boolean isEnabled = filterSwitch.isChecked();
-            for (int i = 0; i < filterContentGroup.getChildCount(); i++) {
-                View child = filterContentGroup.getChildAt(i);
+            boolean isEnabled = bottomSheetBinding.filterSwitch.isChecked();
+            for (int i = 0; i < bottomSheetBinding.filterContentGroup.getChildCount(); i++) {
+                View child = bottomSheetBinding.filterContentGroup.getChildAt(i);
                 child.setEnabled(isEnabled);
                 child.setAlpha(isEnabled ? 1.0f : 0.5f);
             }
-            applyFilterButton.setEnabled(isEnabled);
+            bottomSheetBinding.btnApplyFilter.setEnabled(isEnabled);
         };
 
         setFilterControlsEnabled.run();
 
-        filterSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        bottomSheetBinding.filterSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             setFilterControlsEnabled.run();
             if (!isChecked) {
-                taskTypeTextView.setText("", false);
-                notifyDateEditText.setText("");
-                doneCheckbox.setChecked(false);
-                missCheckbox.setChecked(false);
+                bottomSheetBinding.spnTaskType.setText("", false);
+                bottomSheetBinding.tvNotifyDate.setText("");
+                bottomSheetBinding.cbDoneStatus.setChecked(false);
+                bottomSheetBinding.cbMissStatus.setChecked(false);
                 mViewModel.setFilter(null, null, null);
             }
         });
 
-        applyFilterButton.setOnClickListener(v -> {
-            String selectedDisplayName = taskTypeTextView.getText().toString();
+        bottomSheetBinding.btnApplyFilter.setOnClickListener(v -> {
+            String selectedDisplayName = bottomSheetBinding.spnTaskType.getText().toString();
             TaskType selectedTaskType = DropdownUtils.getEnumValueFromDisplayName(TaskType.class, selectedDisplayName);
             String taskTypeName = (selectedTaskType != null) ? selectedTaskType.name() : null;
 
             List<String> statuses = new ArrayList<>();
-            if (doneCheckbox.isChecked()) {
+            if (bottomSheetBinding.cbDoneStatus.isChecked()) {
                 statuses.add(Status.COMPLETED.name());
             }
-            if (missCheckbox.isChecked()) {
+            if (bottomSheetBinding.cbMissStatus.isChecked()) {
                 statuses.add(Status.MISSED.name());
             }
 
             String date = null;
-            String inputDate = notifyDateEditText.getText().toString();
+            String inputDate = bottomSheetBinding.tvNotifyDate.getText().toString();
             if (!inputDate.isEmpty()) {
                 try {
                     SimpleDateFormat fromUser = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
