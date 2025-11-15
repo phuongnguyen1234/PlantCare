@@ -140,12 +140,9 @@ public class TaskFragment extends Fragment implements TaskAdapter.OnItemMenuClic
         public void onReceive(Context context, Intent intent) {
             int taskId = intent.getIntExtra("taskId", -1);
             if (taskId != -1) {
-                TaskWithPlants twp = adapter.getCurrentList().stream()
+                adapter.getCurrentList().stream()
                         .filter(t -> t.task.getTaskId() == taskId)
-                        .findFirst().orElse(null);
-                if (twp != null) {
-                    viewModel.processTask(twp.task, true);
-                }
+                        .findFirst().ifPresent(twp -> viewModel.processTask(twp.task, true));
             }
         }
     };
