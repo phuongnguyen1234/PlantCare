@@ -1,6 +1,5 @@
 package com.example.plantcare.ui.plant.addeditplant;
 
-import android.app.DatePickerDialog;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -16,18 +15,14 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.plantcare.R;
 import com.example.plantcare.data.entity.Plant;
-import com.example.plantcare.data.enums.DisplayableEnum;
 import com.example.plantcare.data.enums.FrequencyUnit;
 import com.example.plantcare.databinding.FragmentAddEditPlantBinding;
 import com.example.plantcare.ui.main.BaseFragment;
+import com.example.plantcare.utils.DatePickerUtils;
 import com.example.plantcare.utils.DropdownUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Locale;
-import java.util.Objects;
 
 public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBinding> {
 
@@ -101,7 +96,20 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
             }
         });
 
-        binding.etPlantingDate.setOnClickListener(v -> showDatePickerDialog());
+        binding.etPlantingDate.setOnClickListener(v -> {
+            LocalDate initialDate = LocalDate.now();
+            try {
+                // Try to parse the existing date to pre-set the dialog
+                initialDate = LocalDate.parse(binding.etPlantingDate.getText().toString(), dateFormatter);
+            } catch (Exception e) {
+                // Ignore and use today's date if parsing fails
+            }
+            DatePickerUtils.showDatePickerDialog(
+                    requireContext(),
+                    initialDate,
+                    selectedDate -> binding.etPlantingDate.setText(selectedDate.format(dateFormatter))
+            );
+        });
 
         binding.ivPlantImage.setOnClickListener(v -> {
             pickMediaLauncher.launch(new PickVisualMediaRequest.Builder()
@@ -135,24 +143,6 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
         });
     }
 
-    private void showDatePickerDialog() {
-        LocalDate initialDate = LocalDate.now();
-        try {
-            // Try to parse the existing date to pre-set the dialog
-            initialDate = LocalDate.parse(binding.etPlantingDate.getText().toString(), dateFormatter);
-        } catch (Exception e) {
-            // Ignore and use today's date if parsing fails
-        }
-
-        DatePickerDialog datePickerDialog = new DatePickerDialog(requireContext(),
-                (view, year, monthOfYear, dayOfMonth) -> {
-                    LocalDate selectedDate = LocalDate.of(year, monthOfYear + 1, dayOfMonth);
-                    binding.etPlantingDate.setText(selectedDate.format(dateFormatter));
-                }, initialDate.getYear(), initialDate.getMonthValue() - 1, initialDate.getDayOfMonth());
-
-        datePickerDialog.show();
-    }
-
     private void updateUIWithPlantData(Plant plant) {
         // Update the image preview from the saved URI
         if (plant.getImageUrl() != null && !plant.getImageUrl().isEmpty()) {
@@ -160,7 +150,7 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
         } else {
             mViewModel.setPlantImageUri(null);
         }
-        
+
         if (plant.getDatePlanted() != null) {
             binding.etPlantingDate.setText(plant.getDatePlanted().format(dateFormatter));
         }
@@ -237,7 +227,7 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
 
         try {
             currentPlant.setDatePlanted(LocalDate.parse(binding.etPlantingDate.getText().toString(), dateFormatter));
-        } catch(Exception e) {
+        } catch (Exception e) {
             currentPlant.setDatePlanted(LocalDate.now());
         }
 

@@ -32,4 +32,11 @@
     <color name="colorOnError">#FFFFFF</color>
 
     <color name="red_pale">#FF8A80</color>
+
+    <!-- màu cho phần history fragment-->
+    <color name="history_green">#4CAF50</color>
+    <color name="history_orange">#E9580C</color>
+
+    <color name="colorBlue">#2D60FD</color>
+
 </resources>

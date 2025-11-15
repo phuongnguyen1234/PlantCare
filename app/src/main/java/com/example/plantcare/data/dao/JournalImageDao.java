@@ -24,4 +24,5 @@ public interface JournalImageDao {
 
     @Query("SELECT * FROM JournalImage WHERE journalId = :journalId ORDER BY position ASC")
     List<JournalImage> getImagesByJournal(int journalId);
+
 }
