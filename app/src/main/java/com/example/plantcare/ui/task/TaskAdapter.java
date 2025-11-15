@@ -1,6 +1,7 @@
 package com.example.plantcare.ui.task;
 
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -10,10 +11,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.plantcare.R;
 import com.example.plantcare.data.entity.Plant;
+import com.example.plantcare.data.entity.Task;
+import com.example.plantcare.data.enums.Status;
 import com.example.plantcare.data.model.TaskWithPlants;
 import com.example.plantcare.databinding.ItemTaskBinding;
 import com.example.plantcare.utils.MenuUtils;
 
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskViewHolder> {
@@ -43,10 +47,28 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
 
                 @Override
                 public boolean areContentsTheSame(@NonNull TaskWithPlants oldItem, @NonNull TaskWithPlants newItem) {
-                    return oldItem.task.getName().equals(newItem.task.getName())
-                            && oldItem.task.getStatus().equals(newItem.task.getStatus())
-                            && oldItem.task.getType().equals(newItem.task.getType())
-                            && oldItem.plants.size() == newItem.plants.size();
+                    Task oldTask = oldItem.task;
+                    Task newTask = newItem.task;
+
+                    // So sánh các thuộc tính có thể ảnh hưởng đến giao diện một cách an toàn (null-safe)
+                    boolean isTaskContentSame = Objects.equals(oldTask.getName(), newTask.getName()) &&
+                            oldTask.getStatus().equals(newTask.getStatus()) && // So sánh enum bằng == là an toàn và null-safe. [1, 5]
+                            oldTask.getType().equals(newTask.getType()) &&
+                            oldTask.isRepeat() == newTask.isRepeat() &&
+                            // Sử dụng Objects.equals cho tất cả các trường có thể là null
+                            Objects.equals(oldTask.getNotifyTime(), newTask.getNotifyTime()) &&
+                            Objects.equals(oldTask.getFrequency(), newTask.getFrequency()) &&
+                            Objects.equals(oldTask.getFrequencyUnit(), newTask.getFrequencyUnit()) &&
+                            Objects.equals(oldTask.getNotifyStart(), newTask.getNotifyStart()) &&
+                            Objects.equals(oldTask.getNotifyEnd(), newTask.getNotifyEnd()) &&
+                            Objects.equals(oldTask.getNote(), newTask.getNote());
+
+                    // So sánh danh sách cây
+                    boolean arePlantsSame = oldItem.plants.size() == newItem.plants.size();
+                    // (Để so sánh chính xác hơn có thể cần so sánh ID của từng cây, nhưng so sánh size thường là đủ cho các trường hợp thông thường)
+
+                    return isTaskContentSame && arePlantsSame;
+                    // --- KẾT THÚC SỬA ĐỔI ---
                 }
             };
 

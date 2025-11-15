@@ -4,6 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+        <import type="com.example.plantcare.data.enums.Status"/>
+        <import type="android.view.View"/>
         <variable
             name="task"
             type="com.example.plantcare.data.entity.Task" />
@@ -112,6 +114,8 @@
                 android:layout_height="wrap_content"
                 android:text="Hoàn thành"
                 app:backgroundTint="@color/title_color"
+                android:visibility="@{task.status == Status.READY ? View.VISIBLE : View.GONE}"
+                tools:visibility="visible"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"/>
 

@@ -1,6 +1,7 @@
 package com.example.plantcare.ui.task;
 
 import android.app.Application;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -15,7 +16,9 @@ import com.example.plantcare.data.enums.TaskType;
 import com.example.plantcare.data.repository.PlantRepository;
 import com.example.plantcare.data.repository.TaskRepository;
 import com.example.plantcare.data.repository.TaskScopeRepository;
+import com.example.plantcare.notification.TaskAlarmScheduler;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
@@ -80,10 +83,18 @@ public class TaskDetailViewModel extends AndroidViewModel {
 
     public void onAddClicked(Task task) {
         executor.execute(() -> {
+            // Chèn task vào DB và lấy ID mới
             long newTaskId = taskRepository.insertAndGetId(task);
+
             if (newTaskId != -1) {
+                // Gán ID mới vào task object
+                task.setTaskId((int) newTaskId);
+
+                // Lên lịch hẹn giờ với task đã có ID
+                TaskAlarmScheduler.schedule(getApplication(), task);
+
                 Set<Integer> plantIds = selectedPlantIds.getValue();
-                if (plantIds != null) {
+                if (plantIds != null && !plantIds.isEmpty()) {
                     for (Integer plantId : plantIds) {
                         taskScopeRepository.insert(new TaskScope((int) newTaskId, plantId));
                     }
@@ -97,6 +108,9 @@ public class TaskDetailViewModel extends AndroidViewModel {
         executor.execute(() -> {
             taskRepository.update(task);
 
+            // Lên lịch lại hẹn giờ để áp dụng các thay đổi
+            TaskAlarmScheduler.schedule(getApplication(), task);
+
             Set<Integer> plantIds = selectedPlantIds.getValue();
             if (plantIds != null) {
                 List<TaskScope> newScopes = plantIds.stream()
@@ -104,6 +118,7 @@ public class TaskDetailViewModel extends AndroidViewModel {
                         .collect(Collectors.toList());
                 taskScopeRepository.replaceAllByTaskId(task.getTaskId(), newScopes);
             }
+            taskRepository.triggerRefresh();
             _navigateBack.postValue(true);
         });
     }

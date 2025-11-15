@@ -1,5 +1,6 @@
 package com.example.plantcare.notification;
 
+import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -30,6 +31,7 @@ public class DateTimeUtils {
         }
     }
 
+    @SuppressLint("ScheduleExactAlarm")
     public static void scheduleExpirationAutoCancel(Context context, Task task) {
         if (task.getExpiration() == null) return;
 
