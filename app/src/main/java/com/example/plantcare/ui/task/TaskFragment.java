@@ -18,17 +18,12 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.example.plantcare.R;
-import com.example.plantcare.data.entity.Task;
 import com.example.plantcare.data.model.TaskWithPlants;
 import com.example.plantcare.databinding.FragmentTaskBinding;
-import com.example.plantcare.notification.NotificationHelper;
 import com.example.plantcare.notification.TaskActionReceiver;
 import com.example.plantcare.ui.main.ToolbarAndNavControl;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.concurrent.Executors;
 
 public class TaskFragment extends Fragment implements TaskAdapter.OnItemMenuClickListener {
 
