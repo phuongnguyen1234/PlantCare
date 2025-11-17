@@ -25,12 +25,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-// Database version is now 5
 @Database(
         entities = {Plant.class, Task.class, TaskScope.class, Journal.class, JournalImage.class, History.class},
-        version = 5,
+        version = 8, // Incremented version
+        autoMigrations = {
+                @AutoMigration(from = 5, to = 6)
+        },
         exportSchema = true
-
 )
 @TypeConverters({Converters.class})
 public abstract class AppDatabase extends RoomDatabase {
@@ -64,8 +65,6 @@ public abstract class AppDatabase extends RoomDatabase {
     static final Migration MIGRATION_2_3 = new Migration(2, 3) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
-            // Add the new datePlanted column as TEXT, which matches the (now correct) TypeConverter
-            // Provide a default value in the correct ISO_LOCAL_DATE format for existing rows.
             String defaultDate = LocalDate.of(1970, 1, 1).format(DateTimeFormatter.ISO_LOCAL_DATE);
             database.execSQL("ALTER TABLE `Plant` ADD COLUMN `datePlanted` TEXT NOT NULL DEFAULT '" + defaultDate + "'");
         }
@@ -74,23 +73,36 @@ public abstract class AppDatabase extends RoomDatabase {
     static final Migration MIGRATION_3_4 = new Migration(3, 4) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
-            // Create the new table with the new schema
             database.execSQL(
                     "CREATE TABLE `Task_new` (`taskId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `type` TEXT NOT NULL, `frequency` INTEGER NOT NULL, `frequencyUnit` TEXT, `notifyStart` TEXT, `notifyEnd` TEXT, `isRepeat` INTEGER NOT NULL, `status` TEXT NOT NULL, `expiration` TEXT, `notifyTime` TEXT NOT NULL, `note` TEXT)");
-
-            // Copy the data from the old table to the new table
             database.execSQL(
                     "INSERT INTO `Task_new` (`taskId`, `name`, `type`, `frequency`, `frequencyUnit`, `notifyStart`, `notifyEnd`, `isRepeat`, `status`, `expiration`, `notifyTime`, `note`) " +
                     "SELECT `taskId`, `name`, `type`, `frequency`, `frequencyUnit`, `notifyStart`, `notifyEnd`, `isRepeat`, `status`, `nextDue`, `notifyTime`, `note` FROM `Task`");
-
-            // Remove the old table
             database.execSQL("DROP TABLE `Task`");
-
-            // Change the table name to the correct one
             database.execSQL("ALTER TABLE `Task_new` RENAME TO `Task`");
-
-            // Create the History table
             database.execSQL("CREATE TABLE IF NOT EXISTS `History` (`historyId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `taskName` TEXT NOT NULL, `taskType` TEXT NOT NULL, `status` TEXT NOT NULL, `content` TEXT NOT NULL, `notifyTime` TEXT NOT NULL, `dateCompleted` TEXT)");
+        }
+    };
+
+    static final Migration MIGRATION_6_7 = new Migration(6, 7) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE `Journal_new` (`journalId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `plantId` INTEGER, `plantName` TEXT NOT NULL, `dateCreated` TEXT NOT NULL, `content` TEXT, FOREIGN KEY(`plantId`) REFERENCES `Plant`(`plantId`) ON UPDATE NO ACTION ON DELETE SET NULL)");
+            database.execSQL("INSERT INTO `Journal_new` (journalId, plantId, plantName, dateCreated, content) SELECT journalId, plantId, plantName, dateCreated, content FROM `Journal`");
+            database.execSQL("DROP TABLE `Journal`");
+            database.execSQL("ALTER TABLE `Journal_new` RENAME TO `Journal`");
+            database.execSQL("CREATE INDEX `index_Journal_plantId` ON `Journal` (`plantId`)");
+        }
+    };
+
+    static final Migration MIGRATION_7_8 = new Migration(7, 8) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE `Journal_new` (`journalId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `plantId` INTEGER NOT NULL, `plantName` TEXT NOT NULL, `dateCreated` TEXT NOT NULL, `content` TEXT)");
+            database.execSQL("INSERT INTO `Journal_new` (journalId, plantId, plantName, dateCreated, content) SELECT journalId, plantId, plantName, dateCreated, content FROM `Journal`");
+            database.execSQL("DROP TABLE `Journal`");
+            database.execSQL("ALTER TABLE `Journal_new` RENAME TO `Journal`");
+            database.execSQL("CREATE INDEX `index_Journal_plantId` ON `Journal` (`plantId`)");
         }
     };
 
@@ -100,7 +112,8 @@ public abstract class AppDatabase extends RoomDatabase {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                                     AppDatabase.class, "plant_care_database")
-                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_6_7, MIGRATION_7_8)
+                            .fallbackToDestructiveMigration()
                             .build();
                 }
             }

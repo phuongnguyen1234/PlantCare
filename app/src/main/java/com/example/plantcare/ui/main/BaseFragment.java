@@ -66,9 +66,10 @@ public abstract class BaseFragment<B extends ViewDataBinding> extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null; // Important to avoid memory leaks
-        if (getActivity() instanceof ToolbarAndNavControl) {
-            ((ToolbarAndNavControl) getActivity()).showToolbarAndNav(true);
-        }
+
+        // The call to showToolbarAndNav(true) was removed.
+        // The responsibility to show the main nav is handled by the onResume() of the main fragments.
+        // This prevents UI glitches when navigating between two BaseFragments.
 
         if (getActivity() instanceof DrawerLocker) {
             ((DrawerLocker) getActivity()).setDrawerLocked(false);

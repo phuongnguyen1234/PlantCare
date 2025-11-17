@@ -38,7 +38,7 @@ public class MenuUtils {
             }
 
             // Tint icon to match default text color
-            int defaultTextColor = ContextCompat.getColor(context, R.color.colorOnSurface);
+            int defaultTextColor = ContextCompat.getColor(context, R.color.white);
             editItem.setIconTintList(ColorStateList.valueOf(defaultTextColor));
         }
 

@@ -2,10 +2,12 @@ package com.example.plantcare.data.entity;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 import java.time.LocalDateTime;
 
-@Entity(tableName = "Journal")
+@Entity(tableName = "Journal",
+        indices = {@Index(value = {"plantId"})})
 public class Journal {
     @PrimaryKey(autoGenerate = true)
     private int journalId;

@@ -20,24 +20,19 @@ import java.time.format.DateTimeFormatter;
 public class BindingAdapters {
     @BindingAdapter(value = {"imageUrl", "isListItem"}, requireAll = false)
     public static void loadImage(ImageView view, String url, boolean isListItem) {
-        // Phương thức này được dùng ở cả màn hình Add/Edit và RecyclerView
         if (url != null && !url.isEmpty()) {
-            // SỬA LỖI: Xóa tint trước khi tải ảnh
             view.setImageTintList(null);
             Glide.with(view.getContext())
                     .load(url)
                     .centerCrop()
-                    .placeholder(R.drawable.plant_64) // Placeholder cho danh sách
-                    .error(R.drawable.plant_64) // Hiển thị placeholder nếu URL lỗi
+                    .placeholder(R.drawable.plant_64)
+                    .error(R.drawable.plant_64)
                     .into(view);
         } else {
             if (isListItem) {
                 view.setImageResource(R.drawable.plant_64);
-                view.setImageTintList(null); // Không cần tint cho placeholder
+                view.setImageTintList(null);
             } else {
-                // Nếu không có URL, hiển thị placeholder mặc định.
-                // Trạng thái ban đầu (với icon camera) được set trong file XML.
-                // Trạng thái trong danh sách sẽ là ảnh placeholder này.
                 view.setImageResource(android.R.drawable.ic_menu_camera);
                 view.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(view.getContext(), android.R.color.darker_gray)));
             }
@@ -84,18 +79,16 @@ public class BindingAdapters {
 
         int colorRes;
         if (status == Status.READY) {
-            // A light blue color for "Sẵn sàng"
-            colorRes = Color.parseColor("#B3E5FC"); // Light Blue 100
+            colorRes = Color.parseColor("#B3E5FC");
         } else {
-            // A neutral gray for other statuses
-            colorRes = Color.parseColor("#F5F5F5"); // Grey 100
+            colorRes = Color.parseColor("#F5F5F5");
         }
         chip.setChipBackgroundColor(ColorStateList.valueOf(colorRes));
     }
     @BindingAdapter("taskTypeImage")
     public static void setTaskTypeImage(ImageView imageView, TaskType taskType) {
         if (taskType == null) {
-            imageView.setImageResource(R.drawable.default_plant); // Ảnh mặc định
+            imageView.setImageResource(R.drawable.default_plant);
             return;
         }
         switch (taskType) {
@@ -109,8 +102,16 @@ public class BindingAdapters {
                 imageView.setImageResource(R.drawable.sun);
                 break;
             default:
-                imageView.setImageResource(R.drawable.task_dashboard); // Mặc định cho trường hợp khác
+                imageView.setImageResource(R.drawable.task_dashboard);
                 break;
+        }
+    }
+
+    @BindingAdapter("formattedDate")
+    public static void setFormattedDate(TextView view, LocalDateTime date) {
+        if (date != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            view.setText(date.format(formatter));
         }
     }
 }

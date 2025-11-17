@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-        <!-- Dùng adapter set dữ liệu trực tiếp -->
+        <import type="android.view.View"/>
+        <variable
+            name="journal"
+            type="com.example.plantcare.data.model.JournalWithImages" />
+        <variable
+            name="listener"
+            type="com.example.plantcare.ui.journal.JournalAdapter.OnItemClickListener" />
     </data>
 
     <LinearLayout
@@ -13,85 +20,106 @@
         android:paddingHorizontal="8dp"
         android:paddingVertical="8dp">
 
-        <!-- Header: Tên cây + nút hành động -->
+        <!-- Header: Tên cây -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingBottom="4dp"
-            android:gravity="center_vertical">
+            android:paddingBottom="4dp">
 
             <TextView
                 android:id="@+id/tvPlantName"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Cây sen đá"
+                android:text="@{journal.journal.plantName}"
                 android:textColor="@color/colorPrimary"
+                android:textSize="18sp"
                 android:textStyle="bold"
-                android:textSize="18sp" />
+                tools:text="Cây sen đá" />
 
-            <TextView
-                android:id="@+id/tvAction"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Xem thêm"
-                android:textColor="#388E3C"
-                android:paddingStart="8dp"
-                android:clickable="true"
-                android:focusable="true" />
+            <ImageButton
+                android:id="@+id/btnMenu"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:scaleType="centerCrop"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Tùy chọn"
+                android:onClick="@{() -> listener.onMenuClick(btnMenu, journal)}"
+                android:src="@drawable/menu_dots_vertical"
+                app:tint="@color/black"/>
+
         </LinearLayout>
 
-        <!-- Card nhật ký (ẩn khi cây chưa có nhật ký) -->
+        <!-- Card nhật ký -->
         <androidx.cardview.widget.CardView
-            android:id="@+id/cardJournal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="visible"
+            android:layout_height="180dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:onClick="@{() -> listener.onItemClick(journal)}"
             app:cardCornerRadius="12dp"
             app:cardElevation="4dp">
 
+            <!-- Content for existing journal -->
             <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="match_parent"
+                android:visibility="@{(journal.images != null &amp;&amp; !journal.images.isEmpty()) ? View.VISIBLE : View.GONE}">
 
                 <!-- Ảnh nhật ký -->
                 <ImageView
                     android:id="@+id/imgPlant"
                     android:layout_width="match_parent"
-                    android:layout_height="180dp"
+                    android:layout_height="match_parent"
+                    android:contentDescription="Hình ảnh nhật ký"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/default_plant"
-                    android:contentDescription="Hình ảnh nhật ký" />
+                    app:imageUrl="@{(journal.images != null &amp;&amp; !journal.images.isEmpty()) ? journal.images.get(0).imageUrl : null}"
+                    app:isListItem="@{true}"
+                    tools:src="@drawable/default_plant" />
 
                 <!-- Overlay: ngày + nội dung -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom"
+                    android:background="#4D000000"
                     android:orientation="horizontal"
-                    android:padding="12dp"
-                    android:background="#4D000000">
+                    android:padding="12dp">
 
                     <TextView
                         android:id="@+id/tvDate"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="20/11/2025"
                         android:textColor="@android:color/white"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        app:formattedDate="@{journal.journal.dateCreated}"
+                        tools:text="20/11/2025" />
 
                     <TextView
                         android:id="@+id/tvContent"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Cây vẫn khỏe mạnh"
-                        android:textColor="@android:color/white" />
+                        android:text="@{journal.journal.content}"
+                        android:textColor="@android:color/white"
+                        tools:text="Cây vẫn khỏe mạnh" />
                 </LinearLayout>
-
             </FrameLayout>
-        </androidx.cardview.widget.CardView>
 
+            <!-- Content for empty journal -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:background="#E0E0E0"
+                android:text="Chưa có nhật ký"
+                android:textColor="@android:color/black"
+                android:textSize="16sp"
+                android:visibility="@{(journal.images != null &amp;&amp; !journal.images.isEmpty()) ? View.GONE : View.VISIBLE}" />
+
+        </androidx.cardview.widget.CardView>
     </LinearLayout>
 </layout>

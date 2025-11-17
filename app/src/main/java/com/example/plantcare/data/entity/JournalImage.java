@@ -30,6 +30,11 @@ public class JournalImage {
     public JournalImage() {
     }
 
+    public JournalImage(int journalId, @NonNull String imageUrl) {
+        this.journalId = journalId;
+        this.imageUrl = imageUrl;
+    }
+
     public int getImageId() {
         return imageId;
     }

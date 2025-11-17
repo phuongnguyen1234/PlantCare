@@ -4,32 +4,51 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-        <!-- Thêm biến nếu muốn bind ViewModel trực tiếp -->
+        <variable
+            name="viewModel"
+            type="com.example.plantcare.ui.journal.JournalViewModel" />
     </data>
 
-    <LinearLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        >
+        tools:context=".ui.journal.JournalFragment"
+        android:background="@color/layout_background_color">
 
-        <TextView
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:text="Nhật ký"
+                android:textColor="@color/title_color"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewJournal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/item_journal_card"
+                android:nestedScrollingEnabled="false"
+                android:clipToPadding="false"
+                android:paddingBottom="80dp" />
+
+        </LinearLayout>
+
+        <include
+            android:id="@+id/fab_layout"
+            layout="@layout/view_fab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Nhật ký"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@color/title_color"
-            android:layout_margin="16dp"/>
+            android:layout_gravity="bottom|end"
+            android:layout_margin="16dp" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerViewJournal"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:clipToPadding="false"
-            android:paddingBottom="80dp" />
-
-    </LinearLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 </layout>
