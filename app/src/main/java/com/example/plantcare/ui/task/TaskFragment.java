@@ -1,6 +1,13 @@
 package com.example.plantcare.ui.task;
 
+import static androidx.lifecycle.AndroidViewModel_androidKt.getApplication;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,12 +18,21 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.example.plantcare.R;
+import com.example.plantcare.data.entity.Task;
 import com.example.plantcare.data.model.TaskWithPlants;
+import com.example.plantcare.data.repository.TaskRepository;
 import com.example.plantcare.databinding.FragmentTaskBinding;
+import com.example.plantcare.notification.TaskActionReceiver;
+import com.example.plantcare.notification.TaskAlarmScheduler;
 import com.example.plantcare.ui.main.ToolbarAndNavControl;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+
 
 public class TaskFragment extends Fragment implements TaskAdapter.OnItemMenuClickListener {
 
@@ -54,6 +70,9 @@ public class TaskFragment extends Fragment implements TaskAdapter.OnItemMenuClic
         viewModel.getAllTasksWithPlants().observe(getViewLifecycleOwner(), tasks -> {
             if (tasks != null) {
                 adapter.submitList(tasks);
+                Log.d("TASK", "submitList size=" + (tasks == null ? 0 : tasks.size()) + " hash=" + System.identityHashCode(tasks));
+            } else {
+                adapter.submitList(null);
             }
         });
     }
@@ -112,12 +131,30 @@ public class TaskFragment extends Fragment implements TaskAdapter.OnItemMenuClic
     }
 
     @Override
+    public void onCompleteClick(TaskWithPlants taskWithPlants) {
+        viewModel.processTask(taskWithPlants.task, true);
+    }
+
+
+    @Override
     public void onResume() {
         super.onResume();
         if (getActivity() instanceof ToolbarAndNavControl) {
             ((ToolbarAndNavControl) getActivity()).showToolbarAndNav(true);
         }
     }
+
+    private final BroadcastReceiver completeReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int taskId = intent.getIntExtra("taskId", -1);
+            if (taskId != -1) {
+                adapter.getCurrentList().stream()
+                        .filter(t -> t.task.getTaskId() == taskId)
+                        .findFirst().ifPresent(twp -> viewModel.processTask(twp.task, true));
+            }
+        }
+    };
 
     @Override
     public void onDestroyView() {

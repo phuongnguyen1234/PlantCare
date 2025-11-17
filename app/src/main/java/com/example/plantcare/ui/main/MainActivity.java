@@ -1,5 +1,6 @@
 package com.example.plantcare.ui.main;
 
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -164,7 +165,15 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
 
         // === Fragment mặc định ===
         if (savedInstanceState == null) {
-            binding.bottomNavigation.setSelectedItemId(R.id.nav_stat);
+            // --- BẮT ĐẦU SỬA ĐỔI ---
+            // Ưu tiên xử lý Intent từ notification trước.
+            // handleIntent sẽ trả về true nếu nó đã xử lý và chuyển fragment.
+            boolean handledByIntent = handleIntent(getIntent());
+
+            // Chỉ set fragment mặc định (StatFragment) nếu Intent không yêu cầu gì đặc biệt.
+            if (!handledByIntent) {
+                binding.bottomNavigation.setSelectedItemId(R.id.nav_stat);
+            }
         }
 
         // === Behavior cho Fragment container (AppBar scrolling) ===
@@ -286,5 +295,24 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
         } else {
             drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
         }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        // Xử lý khi Activity đã chạy và nhận một Intent mới (ví dụ: nhấn vào thông báo thứ 2)
+        handleIntent(intent);
+    }
+
+    private boolean handleIntent(Intent intent) {
+        if (intent != null && "SHOW_TASK_FRAGMENT".equals(intent.getAction())) {
+            // Nếu có action "SHOW_TASK_FRAGMENT", chuyển đến Bottom Nav item tương ứng
+            // và mở TaskFragment
+            if (binding.bottomNavigation.getSelectedItemId() != R.id.nav_task) {
+                binding.bottomNavigation.setSelectedItemId(R.id.nav_task);
+            }
+            return true; // Trả về true để báo rằng Intent đã được xử lý
+        }
+        return false; // Trả về false nếu không có action đặc biệt
     }
 }

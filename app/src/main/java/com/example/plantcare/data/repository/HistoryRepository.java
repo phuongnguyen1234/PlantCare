@@ -1,6 +1,8 @@
 package com.example.plantcare.data.repository;
 
 import android.app.Application;
+import android.content.Context;
+
 import androidx.lifecycle.LiveData;
 
 import com.example.plantcare.data.AppDatabase;
@@ -17,6 +19,13 @@ public class HistoryRepository {
 
     public HistoryRepository(Application application) {
         AppDatabase db = AppDatabase.getDatabase(application);
+        historyDao = db.historyDao();
+        executorService = AppDatabase.databaseWriteExecutor;
+    }
+
+    // Thêm constructor phụ nhận Context (cho an toàn)
+    public HistoryRepository(Context context) {
+        AppDatabase db = AppDatabase.getDatabase(context.getApplicationContext());
         historyDao = db.historyDao();
         executorService = AppDatabase.databaseWriteExecutor;
     }

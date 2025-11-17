@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.provider.Settings;
+import android.util.Log;
 
 import com.example.plantcare.data.entity.Task;
 
@@ -44,6 +45,7 @@ public class TaskAlarmScheduler {
         );
 
         alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
+        Log.d("Alarm", "Scheduling task " + task.getTaskId() + " at " + triggerAtMillis);
     }
 
 
