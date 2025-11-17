@@ -32,11 +32,11 @@ public class JournalImageAdapter extends RecyclerView.Adapter<JournalImageAdapte
     @Override
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
         JournalImage image = imageList.get(position);
-        Glide.with(holder.binding.imgJournal.getContext())
+        Glide.with(holder.binding.ivJournalImage.getContext())
                 .load(image.getImageUrl())
                 .placeholder(R.drawable.default_plant)
                 .centerCrop()
-                .into(holder.binding.imgJournal);
+                .into(holder.binding.ivJournalImage);
     }
 
     @Override

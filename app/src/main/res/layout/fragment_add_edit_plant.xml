@@ -80,7 +80,7 @@
                     android:text="Tên cây" />
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    style="@style/CustomTextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
@@ -89,7 +89,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@{plant.name}"
-                        tools:text="Cây xương rồng" />
+                        />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <TextView
@@ -99,7 +99,7 @@
                     android:text="Ngày trồng" />
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    style="@style/CustomTextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
@@ -108,8 +108,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:drawableEnd="@android:drawable/ic_menu_my_calendar"
-                        android:focusable="false"
-                        tools:text="05/11/2025" />
+                        android:focusable="false" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Care Needs -->
@@ -136,7 +135,7 @@
                     android:orientation="horizontal">
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        style="@style/CustomTextInputLayout"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
@@ -148,11 +147,11 @@
                             android:layout_height="wrap_content"
                             android:inputType="number"
                             android:text='@{plant != null &amp;&amp; plant.waterFrequency > 0 ? String.valueOf(plant.waterFrequency) : ""}'
-                            tools:text="3" />
+                            />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                        style="@style/CustomExposedDropdownMenu"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1">
@@ -163,7 +162,8 @@
                             android:layout_height="wrap_content"
                             android:inputType="none"
                             android:text='@{plant != null &amp;&amp; plant.waterUnit != null ? plant.waterUnit.getDisplayName() : ""}'
-                            tools:ignore="LabelFor" />
+                            tools:ignore="LabelFor"
+                            />
                     </com.google.android.material.textfield.TextInputLayout>
 
                 </LinearLayout>
@@ -182,7 +182,7 @@
                     android:orientation="horizontal">
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        style="@style/CustomTextInputLayout"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
@@ -194,11 +194,11 @@
                             android:layout_height="wrap_content"
                             android:inputType="number"
                             android:text='@{plant != null &amp;&amp; plant.fertilizerFrequency > 0 ? String.valueOf(plant.fertilizerFrequency) : ""}'
-                            tools:text="3" />
+                            />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                        style="@style/CustomExposedDropdownMenu"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1">
@@ -209,7 +209,8 @@
                             android:layout_height="wrap_content"
                             android:inputType="none"
                             android:text='@{plant != null &amp;&amp; plant.fertilizerUnit != null ? plant.fertilizerUnit.getDisplayName() : ""}'
-                            tools:ignore="LabelFor" />
+                            tools:ignore="LabelFor"
+                            />
                     </com.google.android.material.textfield.TextInputLayout>
 
                 </LinearLayout>
@@ -228,7 +229,7 @@
                     android:orientation="horizontal">
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        style="@style/CustomTextInputLayout"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
@@ -240,11 +241,11 @@
                             android:layout_height="wrap_content"
                             android:inputType="number"
                             android:text='@{plant != null &amp;&amp; plant.lightFrequency > 0 ? String.valueOf(plant.lightFrequency) : ""}'
-                            tools:text="3" />
+                            />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                        style="@style/CustomExposedDropdownMenu"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1">
@@ -255,7 +256,8 @@
                             android:layout_height="wrap_content"
                             android:inputType="none"
                             android:text='@{plant != null &amp;&amp; plant.lightUnit != null ? plant.lightUnit.getDisplayName() : ""}'
-                            tools:ignore="LabelFor" />
+                            tools:ignore="LabelFor"
+                            />
                     </com.google.android.material.textfield.TextInputLayout>
 
                 </LinearLayout>
@@ -274,7 +276,7 @@
                     android:orientation="horizontal">
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        style="@style/CustomTextInputLayout"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
@@ -286,11 +288,11 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="numberDecimal"
-                            tools:text="20" />
+                            />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        style="@style/CustomTextInputLayout"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -301,7 +303,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="numberDecimal"
-                            tools:text="25" />
+                            />
                     </com.google.android.material.textfield.TextInputLayout>
 
                 </LinearLayout>
@@ -320,7 +322,7 @@
                     android:orientation="horizontal">
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        style="@style/CustomTextInputLayout"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
@@ -332,11 +334,11 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="numberDecimal"
-                            tools:text="40" />
+                            />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        style="@style/CustomTextInputLayout"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -347,7 +349,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="numberDecimal"
-                            tools:text="60" />
+                            />
                     </com.google.android.material.textfield.TextInputLayout>
 
                 </LinearLayout>
@@ -360,7 +362,7 @@
                     android:text="Ghi chú" />
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    style="@style/CustomTextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp">
@@ -372,7 +374,7 @@
                         android:gravity="top"
                         android:minHeight="120dp"
                         android:text="@{plant.note}"
-                        tools:text="Không cần quá nhiều nước mỗi lần tưới..." />
+                        />
                 </com.google.android.material.textfield.TextInputLayout>
 
             </LinearLayout>

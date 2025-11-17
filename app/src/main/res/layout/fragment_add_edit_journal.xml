@@ -11,167 +11,92 @@
             type="Boolean" />
     </data>
 
-    <ScrollView
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="16dp"
-        android:background="@android:color/white">
+        android:background="@color/layout_background_color"
+        android:padding="16dp">
 
-        <LinearLayout
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="match_parent"
+            android:layout_above="@+id/btnSave"
+            android:layout_alignParentTop="true"
+            android:layout_marginBottom="16dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingVertical="8dp">
+                android:orientation="vertical">
 
-                <!-- Nút quay lại -->
-                <ImageButton
-                    android:id="@+id/btn_back"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_marginStart="4dp"
-                    android:padding="8dp"
-                    android:scaleType="fitCenter"
-                    android:background="@drawable/circle_background"
-                    android:src="?attr/homeAsUpIndicator"
-                    app:tint="@color/colorIconTint"
-                    android:elevation="4dp" />
-
-                <!-- Tiêu đề -->
-                <TextView
-                    android:id="@+id/tvTitle"
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:text='@{isEditMode ? "Cập nhật nhật ký" : "Thêm nhật ký"}'
-                    android:textAppearance="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"
-                    android:textColor="@color/title_color"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="">
+                    <TextView
+                        android:id="@+id/tvPlantName"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@{plantName}"
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/tvPlantName"
-                    android:layout_width="0dp"
+                    <TextView
+                        android:id="@+id/tvDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="05/11/2025"
+                        android:textColor="@color/colorPrimary"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvImages"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@{plantName}"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/black" />
+                    android:layout_marginTop="16dp"
+                    app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                    app:spanCount="3" />
 
                 <TextView
-                    android:id="@+id/tvDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="05/11/2025"
-                    android:textSize="14sp"
-                    android:textColor="@color/colorPrimary" />
+                    android:layout_marginTop="16dp"
+                    android:text="Nội dung" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/CustomTextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etContent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="top"
+                        android:inputType="textMultiLine"
+                        android:minLines="5"
+                        />
+                </com.google.android.material.textfield.TextInputLayout>
+
             </LinearLayout>
+        </ScrollView>
 
-            <!-- Lưới ảnh (3x2 ô) -->
-            <GridLayout
-                android:id="@+id/gridImages"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:columnCount="3"
-                android:rowCount="2"
-                android:alignmentMode="alignMargins"
-                android:rowOrderPreserved="false"
-                android:layout_marginTop="16dp">
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:backgroundTint="@color/colorPrimary"
+            android:padding="12dp"
+            android:text='@{isEditMode ? "Cập nhật" : "Thêm"}'
+            android:textColor="@android:color/white"
+            android:textStyle="bold" />
 
-                <!-- Các ô ảnh (placeholder) -->
-                <ImageView
-                    android:id="@+id/img1"
-                    android:layout_width="0dp"
-                    android:layout_height="100dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:background="@drawable/ic_add_photo"
-                    android:scaleType="centerCrop" />
-
-                <ImageView
-                    android:id="@+id/img2"
-                    android:layout_width="0dp"
-                    android:layout_height="100dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:background="@drawable/ic_add_photo"
-                    android:scaleType="centerCrop" />
-
-                <ImageView
-                    android:id="@+id/img3"
-                    android:layout_width="0dp"
-                    android:layout_height="100dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:background="@drawable/ic_add_photo"
-                    android:scaleType="centerCrop" />
-
-                <ImageView
-                    android:id="@+id/img4"
-                    android:layout_width="0dp"
-                    android:layout_height="100dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:background="@drawable/ic_add_photo"
-                    android:scaleType="centerCrop" />
-
-                <ImageView
-                    android:id="@+id/img5"
-                    android:layout_width="0dp"
-                    android:layout_height="100dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:background="@drawable/ic_add_photo"
-                    android:scaleType="centerCrop" />
-
-                <ImageView
-                    android:id="@+id/img6"
-                    android:layout_width="0dp"
-                    android:layout_height="100dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="4dp"
-                    android:background="@drawable/ic_add_photo"
-                    android:scaleType="centerCrop" />
-            </GridLayout>
-
-            <!-- Ô nhập nội dung -->
-            <EditText
-                android:id="@+id/etContent"
-                android:layout_width="match_parent"
-                android:layout_height="199dp"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/edittext_background"
-                android:gravity="top"
-                android:hint="Nhập nội dung"
-                android:inputType="textMultiLine"
-                android:minLines="3"
-                android:padding="12dp" />
-
-            <!-- Nút Thêm / Cập nhật -->
-            <Button
-                android:id="@+id/btnSave"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text='@{isEditMode ? "Cập nhật" : "Thêm"}'
-                android:backgroundTint='@{isEditMode ? @color/colorBlue : @color/colorPrimary}'
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                android:padding="12dp" />
-
-        </LinearLayout>
-    </ScrollView>
+    </RelativeLayout>
 </layout>

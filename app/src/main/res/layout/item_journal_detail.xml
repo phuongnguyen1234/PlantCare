@@ -39,16 +39,15 @@
                     android:textColor="@android:color/black" />
 
                 <!-- Icon Tùy chọn (Sử dụng ic_more_vert là icon ba chấm dọc mặc định của Android) -->
-                <ImageView
-                    android:id="@+id/ivOptions"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/menu_dots_vertical"
-                    android:padding="4dp"
-                    android:clickable="true"
-                    android:focusable="true"
+                <ImageButton
+                    android:id="@+id/ib_more"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Tùy chọn nhật ký" />
+                    android:contentDescription="Tùy chọn"
+                    app:tint="@android:color/black"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/menu_dots_vertical" />
             </LinearLayout>
 
             <!-- RecyclerView cho Ảnh -->

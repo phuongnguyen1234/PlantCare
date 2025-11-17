@@ -1,124 +1,152 @@
 package com.example.plantcare.ui.journal.addeditjournal;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.Toast;
+
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import com.bumptech.glide.Glide;
-import com.example.plantcare.databinding.FragmentAddEditJournalBinding;
+import androidx.recyclerview.widget.GridLayoutManager;
+
 import com.example.plantcare.R;
-import java.util.ArrayList;
+import com.example.plantcare.data.entity.Journal;
+import com.example.plantcare.databinding.FragmentAddEditJournalBinding;
+import com.example.plantcare.ui.main.BaseFragment;
+
 import java.util.List;
 
-public class AddEditJournalFragment extends Fragment {
+public class AddEditJournalFragment extends BaseFragment<FragmentAddEditJournalBinding> implements JournalImageAdapter.OnImageClickListener {
 
-    private FragmentAddEditJournalBinding binding;
     private AddEditJournalViewModel viewModel;
+    private JournalImageAdapter imageAdapter;
 
     private int plantId;
     private String plantName;
     private int journalId = -1;
+    private Journal currentJournal; // To hold the journal being edited
 
-    private final List<ImageView> imageViews = new ArrayList<>();
-
-    private final ActivityResultLauncher<Intent> imagePickerLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                    if (result.getData().getClipData() != null) {
-                        int count = result.getData().getClipData().getItemCount();
-                        for (int i = 0; i < count && i < 6; i++) {
-                            Uri uri = result.getData().getClipData().getItemAt(i).getUri();
+    private final ActivityResultLauncher<PickVisualMediaRequest> imagePickerLauncher =
+            registerForActivityResult(new ActivityResultContracts.PickMultipleVisualMedia(6), uris -> {
+                if (uris != null && !uris.isEmpty()) {
+                    for (Uri uri : uris) {
+                        if (viewModel.getImageUrls().getValue() == null || viewModel.getImageUrls().getValue().size() < 6) {
                             viewModel.addImageUri(uri.toString());
+                        } else {
+                            Toast.makeText(getContext(), "Bạn chỉ có thể thêm tối đa 6 ảnh", Toast.LENGTH_SHORT).show();
+                            break;
                         }
-                    } else if (result.getData().getData() != null) {
-                        Uri uri = result.getData().getData();
-                        viewModel.addImageUri(uri.toString());
                     }
                 }
             });
 
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-
-        binding = FragmentAddEditJournalBinding.inflate(inflater, container, false);
-        viewModel = new ViewModelProvider(this).get(AddEditJournalViewModel.class);
-        binding.btnBack.setOnClickListener(v -> requireActivity().onBackPressed());
-
-        imageViews.add(binding.img1);
-        imageViews.add(binding.img2);
-        imageViews.add(binding.img3);
-        imageViews.add(binding.img4);
-        imageViews.add(binding.img5);
-        imageViews.add(binding.img6);
-
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             plantId = getArguments().getInt("plantId");
             plantName = getArguments().getString("plantName");
-            binding.tvPlantName.setText(plantName);
-
             if (getArguments().containsKey("journalId")) {
                 journalId = getArguments().getInt("journalId");
-                viewModel.loadJournal(journalId);
-            } else {
-                viewModel.prepareNewJournalDate();
             }
         }
+    }
 
-        // Quan sát dữ liệu
-        viewModel.getContent().observe(getViewLifecycleOwner(), s -> binding.etContent.setText(s));
-        viewModel.getDateText().observe(getViewLifecycleOwner(), date -> binding.tvDate.setText(date));
+    @Override
+    protected int getLayoutResourceId() {
+        return R.layout.fragment_add_edit_journal;
+    }
 
-        viewModel.getImageUrls().observe(getViewLifecycleOwner(), uris -> {
-            for (int i = 0; i < imageViews.size(); i++) {
-                ImageView img = imageViews.get(i);
-                if (i < uris.size()) {
-                    Glide.with(img.getContext())
-                            .load(Uri.parse(uris.get(i)))
-                            .placeholder(R.drawable.ic_add_photo)
-                            .into(img);
-                } else {
-                    img.setImageResource(R.drawable.ic_add_photo);
+    @Override
+    protected String getToolbarTitle() {
+        return journalId == -1 ? "Thêm nhật ký" : "Sửa nhật ký";
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        viewModel = new ViewModelProvider(this).get(AddEditJournalViewModel.class);
+
+        setupRecyclerView();
+
+        binding.setPlantName(plantName);
+        binding.setIsEditMode(journalId != -1);
+
+        observeViewModel();
+
+        if (journalId != -1) {
+            // Edit mode: Observe the journal with its images
+            viewModel.getJournalWithImages(journalId).observe(getViewLifecycleOwner(), journalWithImages -> {
+                if (journalWithImages != null) {
+                    currentJournal = journalWithImages.journal;
+                    binding.etContent.setText(currentJournal.getContent());
+                    viewModel.updateDateText(currentJournal.getDateCreated());
+                    viewModel.setImageUrls(journalWithImages.images);
                 }
-            }
-        });
-
-        for (ImageView img : imageViews) {
-            img.setOnClickListener(v -> openGallery());
+            });
+        } else {
+            // Add mode: Just prepare a new date
+            viewModel.prepareNewJournalDate();
         }
 
         binding.btnSave.setOnClickListener(v -> {
-            String content = binding.etContent.getText().toString();
-            viewModel.setContent(content);
-            viewModel.saveJournal(plantId, plantName);
-
-            Toast.makeText(requireContext(),
-                    journalId == -1 ? "Đã thêm nhật ký" : "Đã cập nhật nhật ký",
-                    Toast.LENGTH_SHORT).show();
-
-            requireActivity().getSupportFragmentManager().popBackStack();
+            saveJournal();
         });
-
-        return binding.getRoot();
     }
 
-    private void openGallery() {
-        Intent intent = new Intent(Intent.ACTION_PICK);
-        intent.setType("image/*");
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        imagePickerLauncher.launch(Intent.createChooser(intent, "Chọn ảnh"));
+    private void setupRecyclerView() {
+        imageAdapter = new JournalImageAdapter(this);
+        binding.rvImages.setAdapter(imageAdapter);
+        binding.rvImages.setLayoutManager(new GridLayoutManager(getContext(), 3));
+    }
+
+    private void observeViewModel() {
+        viewModel.getDateText().observe(getViewLifecycleOwner(), date -> binding.tvDate.setText(date));
+
+        viewModel.getImageUrls().observe(getViewLifecycleOwner(), uris -> {
+            if (uris != null) {
+                imageAdapter.submitList(uris);
+            }
+        });
+    }
+
+    private void saveJournal() {
+        String content = binding.etContent.getText().toString();
+        List<String> imageUrls = viewModel.getImageUrls().getValue();
+
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            Toast.makeText(getContext(), "Phải có ít nhất 1 ảnh trong nhật ký.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (journalId == -1) {
+            // Add new journal
+            viewModel.saveJournal(plantId, plantName, content, imageUrls);
+            Toast.makeText(getContext(), "Đã thêm nhật ký", Toast.LENGTH_SHORT).show();
+        } else {
+            // Update existing journal
+            if (currentJournal != null) {
+                viewModel.updateJournal(currentJournal, content, imageUrls);
+                Toast.makeText(getContext(), "Đã cập nhật nhật ký", Toast.LENGTH_SHORT).show();
+            }
+        }
+        getParentFragmentManager().popBackStack();
+    }
+
+    @Override
+    public void onAddImageClick() {
+        imagePickerLauncher.launch(new PickVisualMediaRequest.Builder()
+                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                .build());
+    }
+
+    @Override
+    public void onDeleteImageClick(int position) {
+        viewModel.removeImageUri(position);
     }
 }

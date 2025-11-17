@@ -204,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
         debugJournal.setPlantName("Debug Plant");
         debugJournal.setContent("This is a debug journal entry.");
         debugJournal.setDateCreated(LocalDateTime.now());
-        journalRepository.insert(debugJournal);
+        journalRepository.saveJournalWithImages(debugJournal, null);
         Log.d("DEBUG_DB", "Inserted debug journal");
 
         // Insert a sample History

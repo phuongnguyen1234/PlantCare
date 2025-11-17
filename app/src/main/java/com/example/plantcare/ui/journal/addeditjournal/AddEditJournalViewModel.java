@@ -1,35 +1,37 @@
 package com.example.plantcare.ui.journal.addeditjournal;
 
 import android.app.Application;
+
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import com.example.plantcare.data.AppDatabase;
+
 import com.example.plantcare.data.entity.Journal;
 import com.example.plantcare.data.entity.JournalImage;
-import com.example.plantcare.data.repository.JournalImageRepository;
+import com.example.plantcare.data.model.JournalWithImages;
 import com.example.plantcare.data.repository.JournalRepository;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class AddEditJournalViewModel extends AndroidViewModel {
-
-    private final JournalRepository journalRepo;
-    private final JournalImageRepository imageRepo;
-
+    private final JournalRepository repository;
     private final MutableLiveData<String> content = new MutableLiveData<>();
     private final MutableLiveData<String> dateText = new MutableLiveData<>();
     private final MutableLiveData<List<String>> imageUrls = new MutableLiveData<>(new ArrayList<>());
 
-    private Journal currentJournal = null;
-
     public AddEditJournalViewModel(@NonNull Application application) {
         super(application);
-        journalRepo = new JournalRepository(application);
-        imageRepo = new JournalImageRepository(application);
+        repository = new JournalRepository(application);
+    }
+
+    // Method for the Fragment to get the Journal with its images
+    public LiveData<JournalWithImages> getJournalWithImages(int journalId) {
+        return repository.getJournalWithImagesById(journalId);
     }
 
     public LiveData<String> getContent() {
@@ -48,79 +50,51 @@ public class AddEditJournalViewModel extends AndroidViewModel {
         content.setValue(text);
     }
 
-    public void addImageUri(String uri) {
-        List<String> list = new ArrayList<>(imageUrls.getValue());
-        if (list.size() < 6) {
-            list.add(uri);
-            imageUrls.setValue(list);
+    public void setImageUrls(List<JournalImage> images) {
+        if (images != null) {
+            List<String> urls = images.stream().map(JournalImage::getImageUrl).collect(Collectors.toList());
+            imageUrls.setValue(urls);
+        } else {
+            imageUrls.setValue(new ArrayList<>());
         }
     }
 
-    public void loadJournal(int journalId) {
-        journalRepo.getJournalById(journalId).observeForever(journal -> {
-            if (journal != null) {
-                currentJournal = journal;
-                content.setValue(journal.getContent());
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-                dateText.setValue(journal.getDateCreated().format(formatter));
+    public void addImageUri(String uri) {
+        List<String> currentUris = imageUrls.getValue();
+        if (currentUris != null && currentUris.size() < 6) {
+            currentUris.add(uri);
+            imageUrls.setValue(new ArrayList<>(currentUris)); // Trigger observer with a new list
+        }
+    }
 
-                // Lấy danh sách ảnh đồng bộ
-                AppDatabase.databaseWriteExecutor.execute(() -> {
-                    List<JournalImage> images = imageRepo.getImagesByJournalSync(journalId);
-                    if (images != null && !images.isEmpty()) {
-                        List<String> paths = new ArrayList<>();
-                        for (JournalImage img : images) {
-                            paths.add(img.getImageUrl());
-                        }
-                        imageUrls.postValue(paths);
-                    }
-                });
-            }
-        });
+    public void removeImageUri(int position) {
+        List<String> currentUris = imageUrls.getValue();
+        if (currentUris != null && position >= 0 && position < currentUris.size()) {
+            currentUris.remove(position);
+            imageUrls.setValue(new ArrayList<>(currentUris)); // Trigger observer with a new list
+        }
     }
 
     public void prepareNewJournalDate() {
-        // Gọi khi tạo mới
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        dateText.setValue(LocalDateTime.now().format(formatter));
+        updateDateText(LocalDateTime.now());
     }
 
-    public void saveJournal(int plantId, String plantName) {
-        String note = content.getValue() != null ? content.getValue() : "";
-        List<String> imgs = imageUrls.getValue();
+    public void saveJournal(int plantId, String plantName, String content, List<String> images) {
+        Journal journal = new Journal();
+        journal.setPlantId(plantId);
+        journal.setPlantName(plantName);
+        journal.setContent(content);
+        journal.setDateCreated(LocalDateTime.now());
+        repository.saveJournalWithImages(journal, images);
+    }
 
-        if (currentJournal == null) {
-            // Thêm mới
-            Journal journal = new Journal();
-            journal.setPlantId(plantId);
-            journal.setPlantName(plantName);
-            journal.setContent(note);
-            journal.setDateCreated(LocalDateTime.now());
+    public void updateJournal(Journal journal, String content, List<String> images) {
+        journal.setContent(content);
+        repository.updateJournalWithImages(journal, images);
+    }
 
-            long newId = journalRepo.insert(journal);
-
-            if (imgs != null && !imgs.isEmpty()) {
-                for (String img : imgs) {
-                    JournalImage ji = new JournalImage();
-                    ji.setJournalId((int) newId);
-                    ji.setImageUrl(img);
-                    imageRepo.insert(ji);
-                }
-            }
-
-        } else {
-            // Cập nhật
-            currentJournal.setContent(note);
-            journalRepo.update(currentJournal);
-
-            if (imgs != null && !imgs.isEmpty()) {
-                for (String img : imgs) {
-                    JournalImage ji = new JournalImage();
-                    ji.setJournalId(currentJournal.getJournalId());
-                    ji.setImageUrl(img);
-                    imageRepo.insert(ji);
-                }
-            }
-        }
+    public void updateDateText(LocalDateTime dateTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        dateText.setValue(dateTime.format(formatter));
     }
 }

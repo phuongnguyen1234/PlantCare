@@ -2,6 +2,7 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.PlantCare" parent="Theme.Material3.Light.NoActionBar">
         <!-- Customize your light theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
     </style>
 
     <style name="Theme.PlantCare" parent="Base.Theme.PlantCare" />
@@ -16,6 +17,10 @@
     </style>
 
     <style name="CustomTextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/text_input_box_stroke</item>
+    </style>
+
+    <style name="CustomExposedDropdownMenu" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
         <item name="boxStrokeColor">@color/text_input_box_stroke</item>
     </style>
 

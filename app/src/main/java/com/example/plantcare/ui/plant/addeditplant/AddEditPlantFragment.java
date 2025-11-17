@@ -209,19 +209,8 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
     }
 
     private void updatePlantFromFields() {
-        // Handle image copying before saving
-        Uri imageUri = mViewModel.getPlantImageUri().getValue();
-        if (imageUri != null && "content".equals(imageUri.getScheme())) {
-            // This is a new image from the picker, copy it to internal storage
-            Uri internalUri = mViewModel.copyImageToInternalStorage(imageUri);
-            if (internalUri != null) {
-                currentPlant.setImageUrl(internalUri.toString());
-            }
-        } else if (imageUri == null) {
-            // User might have cleared the image
-            currentPlant.setImageUrl(null);
-        }
-        // If imageUri has a 'file' scheme, it's already in internal storage, no action needed.
+        // The ViewModel now handles image processing.
+        // The fragment is only responsible for updating the plant's data fields from the UI.
 
         currentPlant.setName(binding.etPlantName.getText().toString());
 
