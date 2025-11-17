@@ -78,11 +78,15 @@ public class BindingAdapters {
         if (status == null) return;
 
         int colorRes;
+        int colorText;
         if (status == Status.READY) {
-            colorRes = Color.parseColor("#B3E5FC");
+            colorRes = Color.parseColor("#E3F2FD");
+            colorText = Color.parseColor("#0D47A1");
         } else {
             colorRes = Color.parseColor("#F5F5F5");
+            colorText = Color.parseColor("#000000");
         }
+        chip.setTextColor(ColorStateList.valueOf(colorText));
         chip.setChipBackgroundColor(ColorStateList.valueOf(colorRes));
     }
     @BindingAdapter("taskTypeImage")
