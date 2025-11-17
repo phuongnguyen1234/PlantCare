@@ -105,7 +105,23 @@ public class TaskViewModel extends AndroidViewModel {
                 repository.delete(task); // Repository đã được sửa để chạy đồng bộ
             } else {
                 // Lặp lại -> Cập nhật Task
-                FrequencyUnit freqUnit = task.getFrequencyUnit();
+                // TẠO BẢN SAO của task để không sửa đổi instance trong adapter
+                Task taskToUpdate = new Task();
+                taskToUpdate.setTaskId(task.getTaskId());
+                taskToUpdate.setName(task.getName());
+                taskToUpdate.setType(task.getType());
+                taskToUpdate.setFrequency(task.getFrequency());
+                taskToUpdate.setFrequencyUnit(task.getFrequencyUnit());
+                taskToUpdate.setRepeat(task.isRepeat());
+                taskToUpdate.setNotifyTime(task.getNotifyTime()); // QUAN TRỌNG: Lấy notifyTime gốc
+                taskToUpdate.setExpiration(task.getExpiration());
+                taskToUpdate.setStatus(task.getStatus());
+                taskToUpdate.setNote(task.getNote());
+                taskToUpdate.setNotifyStart(task.getNotifyStart());
+                taskToUpdate.setNotifyEnd(task.getNotifyEnd());
+
+
+                FrequencyUnit freqUnit = taskToUpdate.getFrequencyUnit();
                 LocalDateTime now = LocalDateTime.now();
                 ChronoUnit unit;
                 if (freqUnit == null) {
@@ -121,14 +137,15 @@ public class TaskViewModel extends AndroidViewModel {
                 }
 
                 LocalDateTime nextNotifyTime = now.plus(freq, unit);
-                task.setNotifyTime(nextNotifyTime); // Sửa notifyTime
-                task.setExpiration(nextNotifyTime.plusHours(1)); // Sửa expiration
-                task.setStatus(Status.SCHEDULED); // Reset trạng thái
-                repository.update(task); // Gọi hàm update đồng bộ bên trong luồng nền này
+                taskToUpdate.setNotifyTime(nextNotifyTime); // Sửa notifyTime
+                taskToUpdate.setExpiration(nextNotifyTime.plusHours(1)); // Sửa expiration
+                taskToUpdate.setStatus(Status.SCHEDULED); // Reset trạng thái
+                repository.update(taskToUpdate); // Gọi hàm update đồng bộ bên trong luồng nền này
 
                 // Lên lịch lại cho lần tiếp theo
-                TaskAlarmScheduler.schedule(context, task);
+                TaskAlarmScheduler.schedule(context, taskToUpdate);
             }
+            repository.triggerRefresh();
         });
     }
 
