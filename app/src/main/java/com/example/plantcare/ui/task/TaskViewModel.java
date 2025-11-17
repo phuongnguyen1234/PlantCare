@@ -14,6 +14,7 @@ import com.example.plantcare.data.entity.Task;
 import com.example.plantcare.data.enums.FrequencyUnit;
 import com.example.plantcare.data.enums.Status;
 import com.example.plantcare.data.model.TaskWithPlants;
+import com.example.plantcare.data.repository.HistoryRepository;
 import com.example.plantcare.data.repository.TaskRepository;
 import com.example.plantcare.notification.TaskAlarmScheduler;
 
@@ -23,6 +24,9 @@ import java.util.List;
 
 public class TaskViewModel extends AndroidViewModel {
     private final TaskRepository repository;
+
+    private final HistoryRepository historyRepository;
+
     private final LiveData<List<TaskWithPlants>> allTasksWithPlants;
 
     private final MutableLiveData<Boolean> _navigateToAddTask = new MutableLiveData<>();
@@ -34,6 +38,7 @@ public class TaskViewModel extends AndroidViewModel {
     public TaskViewModel(@NonNull Application application) {
         super(application);
         repository = new TaskRepository(application);
+        historyRepository = new HistoryRepository(application);
         allTasksWithPlants = repository.getAllTasksWithPlants();
     }
 
@@ -73,65 +78,58 @@ public class TaskViewModel extends AndroidViewModel {
     public void processTask(Task task, boolean isCompleted) {
         if (task == null) return;
 
-        // --- BẮT ĐẦU SỬA ĐỔI ---
-        // Loại bỏ databaseWriteExecutor. Thực hiện trực tiếp trên luồng gọi.
-        // Vì đây là phản hồi trực tiếp từ hành động của người dùng và thao tác DB rất nhanh,
-        // nên cách làm này chấp nhận được và giải quyết được vấn đề race condition.
-
-        Context context = getApplication().getApplicationContext();
-
-        // 1. Ghi vào History
-        // (Chạy trên luồng nền để không ảnh hưởng)
         TaskRepository.databaseWriteExecutor.execute(() -> {
+            Context context = getApplication().getApplicationContext();
+
+            // 1. GHI VÀO HISTORY VỚI DỮ LIỆU GỐC (CHƯA BỊ SỬA)
             History history = new History();
             history.setTaskName(task.getName());
             history.setTaskType(task.getType());
             history.setStatus(isCompleted ? Status.COMPLETED : Status.MISSED);
             history.setContent((isCompleted ? "Hoàn thành" : "Bỏ lỡ") + " công việc: " + task.getName());
-            history.setNotifyTime(task.getNotifyTime());
+            history.setNotifyTime(task.getNotifyTime()); // QUAN TRỌNG: Lấy notifyTime gốc
             history.setDateCompleted(LocalDateTime.now());
-            repository.insertHistory(history);
-        });
+            historyRepository.insert(history);
 
-        // 2. Hủy thông báo nếu nó đang hiển thị
-        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (manager != null) {
-            manager.cancel(task.getTaskId());
-        }
-
-        // 3. Xử lý Task: Xóa hoặc cập nhật
-        Integer freq = task.getFrequency();
-        if (!task.isRepeat() || freq == null || freq <= 0) {
-            // Không lặp lại -> Xóa Task
-            TaskAlarmScheduler.cancel(context, task.getTaskId());
-            repository.delete(task); // Room sẽ tự động thông báo cho LiveData ngay lập tức
-        } else {
-            // Lặp lại -> Cập nhật Task
-            FrequencyUnit freqUnit = task.getFrequencyUnit();
-            LocalDateTime now = LocalDateTime.now();
-            ChronoUnit unit;
-            if (freqUnit == null) {
-                unit = ChronoUnit.DAYS; // fallback
-            } else {
-                switch (freqUnit) {
-                    case HOUR: unit = ChronoUnit.HOURS; break;
-                    case WEEK: unit = ChronoUnit.WEEKS; break;
-                    case MONTH: unit = ChronoUnit.MONTHS; break;
-                    case YEAR: unit = ChronoUnit.YEARS; break;
-                    default: unit = ChronoUnit.DAYS;
-                }
+            // 2. Hủy thông báo nếu nó đang hiển thị
+            NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (manager != null) {
+                manager.cancel(task.getTaskId());
             }
 
-            LocalDateTime nextNotifyTime = now.plus(freq, unit);
-            task.setNotifyTime(nextNotifyTime);
-            task.setExpiration(nextNotifyTime.plusHours(1));
-            task.setStatus(Status.SCHEDULED); // Reset trạng thái
-            repository.update(task); // Room sẽ tự động thông báo cho LiveData ngay lập tức
+            // 3. XỬ LÝ TASK: Xóa hoặc cập nhật (Bây giờ mới bắt đầu sửa đổi task)
+            Integer freq = task.getFrequency();
+            if (!task.isRepeat() || freq == null || freq <= 0) {
+                // Không lặp lại -> Xóa Task
+                TaskAlarmScheduler.cancel(context, task.getTaskId());
+                repository.delete(task); // Repository đã được sửa để chạy đồng bộ
+            } else {
+                // Lặp lại -> Cập nhật Task
+                FrequencyUnit freqUnit = task.getFrequencyUnit();
+                LocalDateTime now = LocalDateTime.now();
+                ChronoUnit unit;
+                if (freqUnit == null) {
+                    unit = ChronoUnit.DAYS; // fallback
+                } else {
+                    switch (freqUnit) {
+                        case HOUR: unit = ChronoUnit.HOURS; break;
+                        case WEEK: unit = ChronoUnit.WEEKS; break;
+                        case MONTH: unit = ChronoUnit.MONTHS; break;
+                        case YEAR: unit = ChronoUnit.YEARS; break;
+                        default: unit = ChronoUnit.DAYS;
+                    }
+                }
 
-            // Lên lịch lại cho lần tiếp theo
-            TaskAlarmScheduler.schedule(context, task);
-        }
-        // --- KẾT THÚC SỬA ĐỔI ---
+                LocalDateTime nextNotifyTime = now.plus(freq, unit);
+                task.setNotifyTime(nextNotifyTime); // Sửa notifyTime
+                task.setExpiration(nextNotifyTime.plusHours(1)); // Sửa expiration
+                task.setStatus(Status.SCHEDULED); // Reset trạng thái
+                repository.update(task); // Gọi hàm update đồng bộ bên trong luồng nền này
+
+                // Lên lịch lại cho lần tiếp theo
+                TaskAlarmScheduler.schedule(context, task);
+            }
+        });
     }
 
     public static void processTaskStatic(Context context, Task task, boolean isCompleted) {
@@ -143,11 +141,15 @@ public class TaskViewModel extends AndroidViewModel {
         }
 
         TaskRepository repository;
+        HistoryRepository historyRepository;
+
         if (app != null) {
             repository = new TaskRepository(app);
+            historyRepository = new HistoryRepository(app);
         } else {
             // fallback: tạo repository dùng AppDatabase trực tiếp (thêm constructor mới bên repository)
             repository = new TaskRepository(context);
+            historyRepository = new HistoryRepository(context);
         }
 
         Status newStatus = isCompleted ? Status.COMPLETED : Status.MISSED;
@@ -160,7 +162,7 @@ public class TaskViewModel extends AndroidViewModel {
         history.setContent((isCompleted ? "Hoàn thành" : "Bỏ lỡ") + " công việc: " + task.getName());
         history.setNotifyTime(task.getNotifyTime());
         history.setDateCompleted(LocalDateTime.now());
-        repository.insertHistory(history);
+        historyRepository.insert(history);
 
         // Hủy bỏ thông báo (nếu có)
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);

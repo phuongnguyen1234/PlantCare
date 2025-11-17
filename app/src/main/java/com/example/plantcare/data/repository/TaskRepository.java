@@ -90,13 +90,9 @@ public class TaskRepository {
         executorService.execute(() -> taskDao.delete(task));
     }
 
-
     public LiveData<Task> getTaskById(int taskId) {
         return taskDao.getTaskById(taskId);
     }
 
-    public void insertHistory(History history) {
-        executorService.execute(() -> historyDao.insert(history));
-    }
 
 }
