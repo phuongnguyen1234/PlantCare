@@ -19,7 +19,6 @@ import java.util.concurrent.Executors;
 
 public class TaskActionReceiver extends BroadcastReceiver {
     public static final String ACTION_COMPLETE_TASK = "COMPLETE_TASK";
-    public static final String ACTION_EXPIRE_TASK = "EXPIRE_TASK";
     // Vẫn giữ lại action này để báo cho UI biết cần cập nhật
     public static final String ACTION_UI_TASK_COMPLETE = "TASK_ACTION_COMPLETE";
 
