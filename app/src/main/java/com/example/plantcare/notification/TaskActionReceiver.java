@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.app.NotificationManager;
+import android.util.Log;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -19,8 +20,8 @@ import java.util.concurrent.Executors;
 public class TaskActionReceiver extends BroadcastReceiver {
     public static final String ACTION_COMPLETE_TASK = "COMPLETE_TASK";
     public static final String ACTION_EXPIRE_TASK = "EXPIRE_TASK";
-    // Đây là Action mà TaskFragment sẽ lắng nghe
-    public static final String ACTION_PROCESS_TASK_FROM_NOTIFICATION = "PROCESS_TASK_FROM_NOTIFICATION";
+    // Vẫn giữ lại action này để báo cho UI biết cần cập nhật
+    public static final String ACTION_UI_TASK_COMPLETE = "TASK_ACTION_COMPLETE";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -33,27 +34,33 @@ public class TaskActionReceiver extends BroadcastReceiver {
         final int taskId = intent.getIntExtra("taskId", -1);
         if (taskId == -1) return;
 
-        Executors.newSingleThreadExecutor().execute(() -> {
-            TaskDao dao = AppDatabase.getDatabase(context).taskDao();
-            Task task = dao.getTaskSync(taskId);
-            if (task == null) return;
+        // Chỉ xử lý action "COMPLETE_TASK"
+        if (ACTION_COMPLETE_TASK.equals(action)) {
+            // Chạy tác vụ trên một luồng nền để tránh chặn BroadcastReceiver
+            Executors.newSingleThreadExecutor().execute(() -> {
+                // Lấy task từ database
+                TaskDao dao = AppDatabase.getDatabase(context.getApplicationContext()).taskDao();
+                Task task = dao.getTaskSync(taskId);
+                if (task == null) {
+                    Log.e("TaskActionReceiver", "Task with ID " + taskId + " not found.");
+                    return;
+                }
 
-            // 1. Hủy thông báo ngay lập tức
-            NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            if (nm != null) nm.cancel(taskId);
+                // 1. GỌI LOGIC XỬ LÝ: Hoàn thành công việc, ghi history, reschedule (nếu cần)
+                // Đây là bước quan trọng nhất bị thiếu
+                TaskViewModel.processTaskStatic(context, task, true);
 
-            // 2. Chỉ xử lý ACTION_COMPLETE_TASK từ notification
-            if (ACTION_COMPLETE_TASK.equals(action)) {
-                // --- BẮT ĐẦU SỬA ĐỔI ---
-                // Tạo một Intent mới để gửi cho LocalBroadcastManager
-                // Giao nhiệm vụ xử lý logic cho TaskFragment/ViewModel
-                Intent localIntent = new Intent(ACTION_PROCESS_TASK_FROM_NOTIFICATION);
-                localIntent.putExtra("taskId", taskId);
-                // Gửi broadcast cục bộ, chỉ trong phạm vi ứng dụng
-                LocalBroadcastManager.getInstance(context).sendBroadcast(localIntent);
-                // --- KẾT THÚC SỬA ĐỔI ---
-            }
-            // Logic cho ACTION_EXPIRE_TASK có thể được xử lý riêng nếu cần
-        });
+                // 2. Hủy thông báo sau khi đã xử lý
+                NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                if (nm != null) {
+                    nm.cancel(taskId);
+                }
+
+                // 3. Gửi broadcast để thông báo cho UI (nếu đang mở) là cần cập nhật
+                Intent uiUpdateIntent = new Intent(ACTION_UI_TASK_COMPLETE);
+                uiUpdateIntent.putExtra("taskId", taskId);
+                LocalBroadcastManager.getInstance(context).sendBroadcast(uiUpdateIntent);
+            });
+        }
     }
 }

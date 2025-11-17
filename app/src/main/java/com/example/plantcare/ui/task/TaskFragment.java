@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +31,7 @@ import com.example.plantcare.ui.main.ToolbarAndNavControl;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 
 
 public class TaskFragment extends Fragment implements TaskAdapter.OnItemMenuClickListener {
@@ -58,40 +60,7 @@ public class TaskFragment extends Fragment implements TaskAdapter.OnItemMenuClic
 
         binding.fabLayout.fab.setVisibility(View.VISIBLE);
         binding.fabLayout.fab.setOnClickListener(v -> viewModel.onFabClicked());
-
-        // Lắng nghe thông báo hoàn thành từ Notification
-        LocalBroadcastManager.getInstance(requireContext()).registerReceiver(processTaskReceiver,
-                new IntentFilter(TaskActionReceiver.ACTION_PROCESS_TASK_FROM_NOTIFICATION));
     }
-
-    // Tạo một BroadcastReceiver mới để xử lý tác vụ từ notification
-    private final BroadcastReceiver processTaskReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            int taskId = intent.getIntExtra("taskId", -1);
-            if (taskId != -1) {
-                // Tìm Task trong danh sách hiện tại của adapter
-                adapter.getCurrentList().stream()
-                        .filter(t -> t.task.getTaskId() == taskId)
-                        .findFirst()
-                        .ifPresent(taskWithPlants -> {
-                            // Gọi viewModel để xử lý công việc
-                            viewModel.processTask(taskWithPlants.task, true);
-                        });
-            }
-        }
-    };
-
-    /** Khi hoàn thành từ thanh thông báo */
-    private final BroadcastReceiver notificationReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            // Khi notification action đã xử lý ở receiver thì UI chỉ cần refresh
-            int taskId = intent.getIntExtra("taskId", -1);
-            // (Bạn có thể show Snackbar/Toast nếu muốn)
-            viewModel.reloadTasks();
-        }
-    };
 
     private void setupRecyclerView() {
         adapter = new TaskAdapter();
@@ -101,6 +70,9 @@ public class TaskFragment extends Fragment implements TaskAdapter.OnItemMenuClic
         viewModel.getAllTasksWithPlants().observe(getViewLifecycleOwner(), tasks -> {
             if (tasks != null) {
                 adapter.submitList(tasks);
+                Log.d("TASK", "submitList size=" + (tasks == null ? 0 : tasks.size()) + " hash=" + System.identityHashCode(tasks));
+            } else {
+                adapter.submitList(null);
             }
         });
     }
@@ -187,8 +159,6 @@ public class TaskFragment extends Fragment implements TaskAdapter.OnItemMenuClic
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Unregister receiver để tránh leak
-        LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(processTaskReceiver);
         binding = null;
     }
 }

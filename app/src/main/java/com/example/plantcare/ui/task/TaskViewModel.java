@@ -73,9 +73,16 @@ public class TaskViewModel extends AndroidViewModel {
     public void processTask(Task task, boolean isCompleted) {
         if (task == null) return;
 
-        // Chạy các thao tác DB trên một luồng nền
+        // --- BẮT ĐẦU SỬA ĐỔI ---
+        // Loại bỏ databaseWriteExecutor. Thực hiện trực tiếp trên luồng gọi.
+        // Vì đây là phản hồi trực tiếp từ hành động của người dùng và thao tác DB rất nhanh,
+        // nên cách làm này chấp nhận được và giải quyết được vấn đề race condition.
+
+        Context context = getApplication().getApplicationContext();
+
+        // 1. Ghi vào History
+        // (Chạy trên luồng nền để không ảnh hưởng)
         TaskRepository.databaseWriteExecutor.execute(() -> {
-            // Lưu snapshot vào History
             History history = new History();
             history.setTaskName(task.getName());
             history.setTaskType(task.getType());
@@ -84,44 +91,47 @@ public class TaskViewModel extends AndroidViewModel {
             history.setNotifyTime(task.getNotifyTime());
             history.setDateCompleted(LocalDateTime.now());
             repository.insertHistory(history);
+        });
 
-            // Hủy bỏ thông báo nếu nó đang hiển thị
-            NotificationManager manager = (NotificationManager)
-                    getApplication().getSystemService(Context.NOTIFICATION_SERVICE);
+        // 2. Hủy thông báo nếu nó đang hiển thị
+        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager != null) {
             manager.cancel(task.getTaskId());
+        }
 
-            Integer freq = task.getFrequency();
-            // Kiểm tra task có lặp lại không (dựa trên isRepeat và frequency)
-            if (!task.isRepeat() || freq == null || freq <= 0) {
-                // Không lặp → xóa task
-                // Hủy alarm trước khi xóa
-                TaskAlarmScheduler.cancel(getApplication(), task.getTaskId());
-                repository.delete(task);
+        // 3. Xử lý Task: Xóa hoặc cập nhật
+        Integer freq = task.getFrequency();
+        if (!task.isRepeat() || freq == null || freq <= 0) {
+            // Không lặp lại -> Xóa Task
+            TaskAlarmScheduler.cancel(context, task.getTaskId());
+            repository.delete(task); // Room sẽ tự động thông báo cho LiveData ngay lập tức
+        } else {
+            // Lặp lại -> Cập nhật Task
+            FrequencyUnit freqUnit = task.getFrequencyUnit();
+            LocalDateTime now = LocalDateTime.now();
+            ChronoUnit unit;
+            if (freqUnit == null) {
+                unit = ChronoUnit.DAYS; // fallback
             } else {
-                // Task lặp → tính notifyTime tiếp theo và cập nhật
-                FrequencyUnit freqUnit = task.getFrequencyUnit();
-                LocalDateTime now = LocalDateTime.now(); // Dựa trên thời điểm hiện tại
-                ChronoUnit unit;
-                if (freqUnit == null) unit = ChronoUnit.DAYS; // fallback
-                else switch (freqUnit) {
+                switch (freqUnit) {
                     case HOUR: unit = ChronoUnit.HOURS; break;
-                    case DAY: unit = ChronoUnit.DAYS; break;
                     case WEEK: unit = ChronoUnit.WEEKS; break;
                     case MONTH: unit = ChronoUnit.MONTHS; break;
                     case YEAR: unit = ChronoUnit.YEARS; break;
                     default: unit = ChronoUnit.DAYS;
                 }
-
-                LocalDateTime nextNotifyTime = now.plus(freq, unit);
-                task.setNotifyTime(nextNotifyTime);
-                task.setStatus(Status.SCHEDULED); // Reset trạng thái về "Lên lịch"
-                repository.update(task);
-
-                // Reschedule alarm cho lần tiếp theo
-                TaskAlarmScheduler.schedule(getApplication(), task);
             }
-            repository.triggerRefresh();
-        });
+
+            LocalDateTime nextNotifyTime = now.plus(freq, unit);
+            task.setNotifyTime(nextNotifyTime);
+            task.setExpiration(nextNotifyTime.plusHours(1));
+            task.setStatus(Status.SCHEDULED); // Reset trạng thái
+            repository.update(task); // Room sẽ tự động thông báo cho LiveData ngay lập tức
+
+            // Lên lịch lại cho lần tiếp theo
+            TaskAlarmScheduler.schedule(context, task);
+        }
+        // --- KẾT THÚC SỬA ĐỔI ---
     }
 
     public static void processTaskStatic(Context context, Task task, boolean isCompleted) {
@@ -189,6 +199,7 @@ public class TaskViewModel extends AndroidViewModel {
             }
             LocalDateTime nextNotifyTime = now.plus(freq, unit);
             task.setNotifyTime(nextNotifyTime);
+            task.setExpiration(nextNotifyTime.plusHours(1));
             task.setStatus(Status.SCHEDULED); // Reset trạng thái
             repository.update(task);
 

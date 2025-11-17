@@ -1,10 +1,13 @@
 package com.example.plantcare.ui.task;
 
+import android.annotation.SuppressLint;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,6 +20,10 @@ import com.example.plantcare.data.model.TaskWithPlants;
 import com.example.plantcare.databinding.ItemTaskBinding;
 import com.example.plantcare.utils.MenuUtils;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -42,48 +49,75 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
             new DiffUtil.ItemCallback<TaskWithPlants>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull TaskWithPlants oldItem, @NonNull TaskWithPlants newItem) {
+                    // So sánh ID để xác định cùng một item
                     return oldItem.task.getTaskId() == newItem.task.getTaskId();
                 }
 
+                @SuppressLint("DiffUtilEquals")
                 @Override
                 public boolean areContentsTheSame(@NonNull TaskWithPlants oldItem, @NonNull TaskWithPlants newItem) {
+
                     Task oldTask = oldItem.task;
                     Task newTask = newItem.task;
 
-                    // So sánh các thuộc tính có thể ảnh hưởng đến giao diện một cách an toàn (null-safe)
-                    boolean isTaskContentSame = Objects.equals(oldTask.getName(), newTask.getName()) &&
-                            oldTask.getStatus().equals(newTask.getStatus()) && // So sánh enum bằng == là an toàn và null-safe. [1, 5]
-                            oldTask.getType().equals(newTask.getType()) &&
-                            oldTask.isRepeat() == newTask.isRepeat() &&
-                            // Sử dụng Objects.equals cho tất cả các trường có thể là null
-                            Objects.equals(oldTask.getNotifyTime(), newTask.getNotifyTime()) &&
-                            Objects.equals(oldTask.getFrequency(), newTask.getFrequency()) &&
-                            Objects.equals(oldTask.getFrequencyUnit(), newTask.getFrequencyUnit()) &&
-                            Objects.equals(oldTask.getNotifyStart(), newTask.getNotifyStart()) &&
-                            Objects.equals(oldTask.getNotifyEnd(), newTask.getNotifyEnd()) &&
-                            Objects.equals(oldTask.getNote(), newTask.getNote());
+                    // Compare notify time truncated to minutes
+                    LocalDateTime oldTime = truncateToMinute(oldTask.getNotifyTime());
+                    LocalDateTime newTime = truncateToMinute(newTask.getNotifyTime());
 
-                    // So sánh danh sách cây
-                    boolean arePlantsSame = oldItem.plants.size() == newItem.plants.size();
-                    // (Để so sánh chính xác hơn có thể cần so sánh ID của từng cây, nhưng so sánh size thường là đủ cho các trường hợp thông thường)
+                    // Quick checks for basic fields shown in UI
+                    boolean basicSame = Objects.equals(oldTime, newTime)
+                            && Objects.equals(oldTask.getName(), newTask.getName())
+                            && oldTask.getStatus() == newTask.getStatus()
+                            && oldTask.getType() == newTask.getType()
+                            && oldTask.getFrequency() == newTask.getFrequency()
+                            && Objects.equals(oldTask.getFrequencyUnit(), newTask.getFrequencyUnit());
 
-                    return isTaskContentSame && arePlantsSame;
-                    // --- KẾT THÚC SỬA ĐỔI ---
+                    Log.d("DIFF", "old: " + oldItem.task.getNotifyTime());
+                    Log.d("DIFF", "new: " + newItem.task.getNotifyTime());
+                    if (!basicSame) return false;
+
+                    // Compare plant id lists in a stable, API-safe way
+                    List<Integer> oldPlantIds = new ArrayList<>();
+                    if (oldItem.plants != null) {
+                        for (Plant p : oldItem.plants) {
+                            // adjust method name if your Plant uses another getter e.g. getId()
+                            oldPlantIds.add(p.getPlantId());
+                        }
+                    }
+
+                    List<Integer> newPlantIds = new ArrayList<>();
+                    if (newItem.plants != null) {
+                        for (Plant p : newItem.plants) {
+                            newPlantIds.add(p.getPlantId());
+                        }
+                    }
+
+                    Collections.sort(oldPlantIds);
+                    Collections.sort(newPlantIds);
+
+                    return Objects.equals(oldPlantIds, newPlantIds);
                 }
             };
+
+    private static LocalDateTime truncateToMinute(LocalDateTime time) {
+        return time == null ? null :
+                time.withSecond(0).withNano(0);
+    }
 
     @NonNull
     @Override
     public TaskViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        ItemTaskBinding binding = ItemTaskBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        ItemTaskBinding binding =
+                ItemTaskBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
         return new TaskViewHolder(binding, listener);
     }
 
+    // Xóa onBindViewHolder với payload để đơn giản hóa
     @Override
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
-        TaskWithPlants currentTaskWithPlants = getItem(position);
-        holder.bind(currentTaskWithPlants);
+        holder.bind(getItem(position));
     }
+
 
     static class TaskViewHolder extends RecyclerView.ViewHolder {
         private final ItemTaskBinding binding;
@@ -95,14 +129,11 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
             // Sự kiện click menu
             binding.taskMenu.setOnClickListener(v -> {
                 int position = getBindingAdapterPosition();
-                if (position != RecyclerView.NO_POSITION) {
-                    TaskAdapter adapter = (TaskAdapter) getBindingAdapter();
-                    TaskWithPlants taskWithPlants = adapter.getItem(position);
+                if (position != RecyclerView.NO_POSITION && listener != null) {
+                    TaskWithPlants taskWithPlants = ((TaskAdapter) getBindingAdapter()).getItem(position);
 
                     MenuUtils.showCustomPopupMenu(v, R.menu.task_item_menu, item -> {
                         int itemId = item.getItemId();
-                        if (listener == null) return false;
-
                         if (itemId == R.id.menu_edit) {
                             listener.onEditClick(taskWithPlants.task.getTaskId());
                             return true;
@@ -119,8 +150,7 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
             binding.completeButton.setOnClickListener(v -> {
                 int position = getBindingAdapterPosition();
                 if (position != RecyclerView.NO_POSITION && listener != null) {
-                    TaskAdapter adapter = (TaskAdapter) getBindingAdapter();
-                    TaskWithPlants taskWithPlants = adapter.getItem(position);
+                    TaskWithPlants taskWithPlants = ((TaskAdapter) getBindingAdapter()).getItem(position);
                     listener.onCompleteClick(taskWithPlants);
                 }
             });

@@ -46,7 +46,6 @@ public class TaskRepository {
             // Thao tác này sẽ kích hoạt lại việc gửi dữ liệu đến observers
             mediator.setValue(source.getValue());
         });
-        // --- KẾT THÚC SỬA ĐỔI LOGIC MEDIATOR ---
         allTasksWithPlants = mediator;
     }
 

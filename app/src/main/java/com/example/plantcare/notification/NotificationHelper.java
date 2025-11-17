@@ -23,11 +23,22 @@ import com.example.plantcare.data.entity.Task;
         public static void showTaskNotification(Context context, Task task) {
             createChannel(context);
 
-            // Intent mở app
+            // 1. Tạo Intent để mở MainActivity
             Intent openIntent = new Intent(context, MainActivity.class);
+
+            // 2. Thêm một "dấu hiệu" để MainActivity biết cần mở TaskFragment
+            openIntent.setAction("SHOW_TASK_FRAGMENT"); // Đặt một action rõ ràng
+            openIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Xóa các activity cũ và tạo task mới
+
+            // 3. Tạo PendingIntent
+            // Request code có thể là 0 hoặc một số duy nhất nếu bạn có nhiều loại PendingIntent mở app
             PendingIntent contentIntent = PendingIntent.getActivity(
-                    context, 0, openIntent, PendingIntent.FLAG_IMMUTABLE
+                    context,
+                    task.getTaskId(), // Sử dụng taskId để mỗi thông báo có 1 pending intent riêng
+                    openIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
             );
+
 
             // Intent nút “Hoàn thành”
             Intent completeIntent = new Intent(context, TaskActionReceiver.class);
