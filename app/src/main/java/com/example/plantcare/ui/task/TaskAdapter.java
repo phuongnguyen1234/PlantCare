@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.plantcare.R;
 import com.example.plantcare.data.entity.Plant;
 import com.example.plantcare.data.entity.Task;
+import com.example.plantcare.data.enums.Status;
 import com.example.plantcare.data.model.TaskWithPlants;
 import com.example.plantcare.databinding.ItemTaskBinding;
 import com.example.plantcare.utils.MenuUtils;
@@ -32,6 +33,7 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
         void onEditClick(int taskId);
         void onDeleteClick(TaskWithPlants taskWithPlants);
         void onCompleteClick(TaskWithPlants taskWithPlants);
+        void onExpired(TaskWithPlants taskWithPlants);
     }
 
     public void setOnItemMenuClickListener(OnItemMenuClickListener listener) {
@@ -46,7 +48,6 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
             new DiffUtil.ItemCallback<TaskWithPlants>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull TaskWithPlants oldItem, @NonNull TaskWithPlants newItem) {
-                    // So sánh ID để xác định cùng một item
                     return oldItem.task.getTaskId() == newItem.task.getTaskId();
                 }
 
@@ -57,11 +58,9 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
                     Task oldTask = oldItem.task;
                     Task newTask = newItem.task;
 
-                    // Compare notify time truncated to minutes
                     LocalDateTime oldTime = truncateToMinute(oldTask.getNotifyTime());
                     LocalDateTime newTime = truncateToMinute(newTask.getNotifyTime());
 
-                    // Quick checks for basic fields shown in UI
                     boolean basicSame = Objects.equals(oldTime, newTime)
                             && Objects.equals(oldTask.getName(), newTask.getName())
                             && oldTask.getStatus() == newTask.getStatus()
@@ -69,15 +68,11 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
                             && oldTask.getFrequency() == newTask.getFrequency()
                             && Objects.equals(oldTask.getFrequencyUnit(), newTask.getFrequencyUnit());
 
-                    Log.d("DIFF", "old: " + oldItem.task.getNotifyTime());
-                    Log.d("DIFF", "new: " + newItem.task.getNotifyTime());
                     if (!basicSame) return false;
 
-                    // Compare plant id lists in a stable, API-safe way
                     List<Integer> oldPlantIds = new ArrayList<>();
                     if (oldItem.plants != null) {
                         for (Plant p : oldItem.plants) {
-                            // adjust method name if your Plant uses another getter e.g. getId()
                             oldPlantIds.add(p.getPlantId());
                         }
                     }
@@ -109,7 +104,6 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
         return new TaskViewHolder(binding, listener);
     }
 
-    // Xóa onBindViewHolder với payload để đơn giản hóa
     @Override
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
         holder.bind(getItem(position));
@@ -118,12 +112,13 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
 
     static class TaskViewHolder extends RecyclerView.ViewHolder {
         private final ItemTaskBinding binding;
+        private final OnItemMenuClickListener listener;
 
         public TaskViewHolder(ItemTaskBinding binding, OnItemMenuClickListener listener) {
             super(binding.getRoot());
             this.binding = binding;
+            this.listener = listener;
 
-            // Sự kiện click menu
             binding.taskMenu.setOnClickListener(v -> {
                 int position = getBindingAdapterPosition();
                 if (position != RecyclerView.NO_POSITION && listener != null) {
@@ -143,7 +138,6 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
                 }
             });
 
-            // Nút hoàn thành
             binding.completeButton.setOnClickListener(v -> {
                 int position = getBindingAdapterPosition();
                 if (position != RecyclerView.NO_POSITION && listener != null) {
@@ -155,6 +149,14 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
 
         public void bind(TaskWithPlants taskWithPlants) {
             binding.setTask(taskWithPlants.task);
+
+            if ((taskWithPlants.task.getStatus() == Status.SCHEDULED || taskWithPlants.task.getStatus() == Status.READY) && 
+                taskWithPlants.task.getExpiration() != null &&
+                taskWithPlants.task.getExpiration().isBefore(LocalDateTime.now())) {
+                if (listener != null) {
+                    listener.onExpired(taskWithPlants);
+                }
+            }
 
             if (taskWithPlants.plants != null && !taskWithPlants.plants.isEmpty()) {
                 String plantNames = taskWithPlants.plants.stream()

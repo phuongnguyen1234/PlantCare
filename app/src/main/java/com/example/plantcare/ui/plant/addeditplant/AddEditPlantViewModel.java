@@ -6,28 +6,22 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.plantcare.data.entity.Plant;
 import com.example.plantcare.data.repository.PlantRepository;
+import com.example.plantcare.ui.base.BaseViewModel;
 
 import java.io.IOException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-public class AddEditPlantViewModel extends AndroidViewModel {
+public class AddEditPlantViewModel extends BaseViewModel {
     private static final String TAG = "AddEditPlantVM";
     private final PlantRepository plantRepository;
     private final MutableLiveData<Uri> plantImageUri = new MutableLiveData<>();
     private String originalImageUrl; // To track the initial image state
-
-    private final MutableLiveData<Boolean> _saveComplete = new MutableLiveData<>();
-    public final LiveData<Boolean> saveComplete = _saveComplete;
-
-    private final MutableLiveData<String> _toastMessage = new MutableLiveData<>();
-    public final LiveData<String> toastMessage = _toastMessage;
     private final Executor executor = Executors.newSingleThreadExecutor();
 
     public AddEditPlantViewModel(@NonNull Application application) {
@@ -69,7 +63,6 @@ public class AddEditPlantViewModel extends AndroidViewModel {
 
                 if (isNewImage) {
                     // 1. A new image was selected from the gallery.
-                    // Delete the old image file if it exists.
                     if (!TextUtils.isEmpty(originalImageUrl)) {
                         plantRepository.deleteImageFile(originalImageUrl);
                     }
@@ -78,13 +71,10 @@ public class AddEditPlantViewModel extends AndroidViewModel {
                     plant.setImageUrl(newImagePath);
                 } else if (imageCleared) {
                     // 2. The existing image was deleted by the user.
-                    // Delete the old image file.
                     plantRepository.deleteImageFile(originalImageUrl);
-                    // Set the plant's image URL to null.
                     plant.setImageUrl(null);
                 }
                 // 3. If neither of the above, the image was not changed.
-                // The plant object already holds the correct originalImageUrl, so no action is needed.
 
                 boolean isNewPlant = plant.getPlantId() == 0;
                 if (isNewPlant) {
@@ -94,7 +84,7 @@ public class AddEditPlantViewModel extends AndroidViewModel {
                     plantRepository.update(plant);
                     _toastMessage.postValue("Cập nhật cây thành công");
                 }
-                _saveComplete.postValue(true);
+                _navigateBack.postValue(true);
             } catch (IOException e) {
                 Log.e(TAG, "Failed to copy image", e);
                 _toastMessage.postValue("Không thể sao chép ảnh");
@@ -103,14 +93,5 @@ public class AddEditPlantViewModel extends AndroidViewModel {
                 _toastMessage.postValue("Lưu cây thất bại");
             }
         });
-    }
-
-
-    public void onSaveComplete() {
-        _saveComplete.setValue(false);
-    }
-
-    public void onToastMessageShown() {
-        _toastMessage.setValue(null);
     }
 }

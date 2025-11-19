@@ -63,7 +63,14 @@ public class PlantFragment extends Fragment implements OnItemMenuClickListener<P
 
     private void observeViewModel() {
         mViewModel.getAllPlants().observe(getViewLifecycleOwner(), plants -> {
-            plantAdapter.submitList(plants);
+            boolean isEmpty = plants == null || plants.isEmpty();
+            binding.rvPlants.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+            binding.emptyViewLayout.getRoot().setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+
+            if (isEmpty) {
+                binding.emptyViewLayout.setTitle("Chưa có cây nào");
+                binding.emptyViewLayout.setSubtitle("Nhấn nút + để thêm cây đầu tiên của bạn.");
+            }
         });
 
         mViewModel.toastMessage.observe(getViewLifecycleOwner(), message -> {

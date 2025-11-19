@@ -38,9 +38,14 @@
                 tools:listitem="@layout/item_plant"
                 android:nestedScrollingEnabled="false"
                 android:clipToPadding="false"
-                android:paddingBottom="80dp" />
+                android:paddingBottom="80dp"
+                app:listData="@{viewModel.allPlants}"/>
 
         </LinearLayout>
+
+        <include
+            android:id="@+id/empty_view_layout"
+            layout="@layout/empty_view" />
 
         <include
             android:id="@+id/fab_layout"

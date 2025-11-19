@@ -2,16 +2,37 @@ package com.example.plantcare;
 
 import android.app.Application;
 
-/**
- * The Application class. The database instance is now managed by a singleton pattern
- * in AppDatabase.getDatabase() and accessed via dependency injection in repositories.
- * This class can be used for other application-level initializations if needed in the future.
- */
+import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
+
+import com.example.plantcare.notification.TaskCleanupWorker;
+
+import java.util.concurrent.TimeUnit;
+
 public class MainApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        // The static database instance is no longer needed here.
-        // Repositories now get the database instance via AppDatabase.getDatabase(context).
+        setupRecurringWork();
+    }
+
+    private void setupRecurringWork() {
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+                .build();
+
+        PeriodicWorkRequest cleanupRequest = 
+                new PeriodicWorkRequest.Builder(TaskCleanupWorker.class, 15, TimeUnit.MINUTES)
+                .setConstraints(constraints)
+                .build();
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "TaskCleanupWorker",
+                ExistingPeriodicWorkPolicy.KEEP,
+                cleanupRequest
+        );
     }
 }

@@ -45,16 +45,9 @@ public interface HistoryDao {
             "ORDER BY notifyTime DESC")
     LiveData<List<History>> getFilteredHistoriesWithoutStatus(String taskType, String date, String searchQuery);
 
-
-    @Query("SELECT * FROM History WHERE status = :status ORDER BY dateCompleted DESC")
-    LiveData<List<History>> getHistoryByStatus(String status);
-
-    @Query("SELECT COUNT(*) FROM History WHERE dateCompleted >= :since")
-    LiveData<Integer> getCompletedSinceCount(LocalDateTime since);
-
-    @Query("SELECT date(dateCompleted) as date, COUNT(*) as count FROM History WHERE dateCompleted >= :since GROUP BY date(dateCompleted)")
+    @Query("SELECT date(dateCompleted) as date, COUNT(*) as count FROM History WHERE dateCompleted >= :since AND status = 'COMPLETED' GROUP BY date(dateCompleted)")
     LiveData<List<DailyTaskCount>> getDailyCompletedTaskCounts(LocalDateTime since);
 
-    @Query("SELECT COUNT(*) FROM History WHERE date(dateCompleted) = date('now')")
+    @Query("SELECT COUNT(*) FROM History WHERE date(dateCompleted) = date('now') AND status = 'COMPLETED'")
     LiveData<Integer> getTodayCompletedTaskCount();
 }

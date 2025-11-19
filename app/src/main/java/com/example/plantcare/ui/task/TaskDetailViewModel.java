@@ -1,10 +1,8 @@
 package com.example.plantcare.ui.task;
 
 import android.app.Application;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
@@ -17,8 +15,8 @@ import com.example.plantcare.data.repository.PlantRepository;
 import com.example.plantcare.data.repository.TaskRepository;
 import com.example.plantcare.data.repository.TaskScopeRepository;
 import com.example.plantcare.notification.TaskAlarmScheduler;
+import com.example.plantcare.ui.base.BaseViewModel;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
@@ -27,7 +25,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-public class TaskDetailViewModel extends AndroidViewModel {
+public class TaskDetailViewModel extends BaseViewModel {
 
     private final TaskRepository taskRepository;
     private final PlantRepository plantRepository;
@@ -37,10 +35,7 @@ public class TaskDetailViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> _isEditMode = new MutableLiveData<>(false);
     public LiveData<Boolean> isEditMode = _isEditMode;
 
-    private final MutableLiveData<Boolean> _navigateBack = new MutableLiveData<>(false);
-    public LiveData<Boolean> navigateBack = _navigateBack;
-
-    // Form fields - used to populate the UI
+    // Form fields
     public final MutableLiveData<String> taskName = new MutableLiveData<>();
     public final MutableLiveData<TaskType> taskType = new MutableLiveData<>();
     public final MutableLiveData<String> notifyTime = new MutableLiveData<>();
@@ -78,32 +73,28 @@ public class TaskDetailViewModel extends AndroidViewModel {
 
     public void onAddClicked(Task task) {
         executor.execute(() -> {
-            // Chèn task vào DB và lấy ID mới
-            long newTaskId = taskRepository.insertAndGetId(task);
-
-            if (newTaskId != -1) {
-                // Gán ID mới vào task object
-                task.setTaskId((int) newTaskId);
-
-                // Lên lịch hẹn giờ với task đã có ID
-                TaskAlarmScheduler.schedule(getApplication(), task);
-
+            try {
                 Set<Integer> plantIds = selectedPlantIds.getValue();
-                if (plantIds != null && !plantIds.isEmpty()) {
-                    for (Integer plantId : plantIds) {
-                        taskScopeRepository.insert(new TaskScope((int) newTaskId, plantId));
-                    }
+                long newTaskId = taskRepository.insertTaskWithScopes(task, plantIds);
+
+                if (newTaskId != -1) {
+                    task.setTaskId((int) newTaskId);
+                    TaskAlarmScheduler.schedule(getApplication(), task);
+                    _toastMessage.postValue("Thêm công việc thành công");
+                } else {
+                    _toastMessage.postValue("Thêm công việc thất bại");
                 }
+            } catch (Exception e) {
+                _toastMessage.postValue("Lỗi khi thêm công việc: " + e.getMessage());
             }
             _navigateBack.postValue(true);
         });
     }
 
+
     public void onUpdateClicked(Task task) {
         executor.execute(() -> {
             taskRepository.update(task);
-
-            // Lên lịch lại hẹn giờ để áp dụng các thay đổi
             TaskAlarmScheduler.schedule(getApplication(), task);
 
             Set<Integer> plantIds = selectedPlantIds.getValue();
@@ -114,6 +105,7 @@ public class TaskDetailViewModel extends AndroidViewModel {
                 taskScopeRepository.replaceAllByTaskId(task.getTaskId(), newScopes);
             }
             taskRepository.triggerRefresh();
+            _toastMessage.postValue("Cập nhật công việc thành công");
             _navigateBack.postValue(true);
         });
     }
@@ -156,12 +148,5 @@ public class TaskDetailViewModel extends AndroidViewModel {
             notifyStart.setValue("");
             notifyEnd.setValue("");
         }
-    }
-
-    public void onNavigatedBack() { _navigateBack.setValue(false); }
-
-    @Override
-    protected void onCleared() {
-        super.onCleared();
     }
 }

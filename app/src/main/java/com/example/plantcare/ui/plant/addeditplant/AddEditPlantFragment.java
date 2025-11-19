@@ -130,10 +130,10 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
     }
 
     private void observeViewModel() {
-        mViewModel.saveComplete.observe(getViewLifecycleOwner(), isSaveComplete -> {
-            if (isSaveComplete != null && isSaveComplete) {
+        mViewModel.navigateBack.observe(getViewLifecycleOwner(), navigate -> {
+            if (navigate != null && navigate) {
                 getParentFragmentManager().popBackStack();
-                mViewModel.onSaveComplete();
+                mViewModel.onNavigatedBack();
             }
         });
 

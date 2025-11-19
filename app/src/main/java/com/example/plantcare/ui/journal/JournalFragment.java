@@ -53,23 +53,19 @@ public class JournalFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        setupRecyclerView();
+        setupObservers();
 
+        binding.fabLayout.fab.setVisibility(View.VISIBLE);
+        binding.fabLayout.fab.setOnClickListener(v -> showPlantSelectionDialog());
+    }
+
+    private void setupRecyclerView() {
         adapter = new JournalAdapter(new JournalAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(JournalWithImages journal) {
                 if (journal.images != null && !journal.images.isEmpty()) {
-                    Bundle bundle = new Bundle();
-                    bundle.putInt("plantId", journal.journal.getPlantId());
-                    bundle.putString("plantName", journal.journal.getPlantName());
-
-                    JournalDetailFragment detailFragment = new JournalDetailFragment();
-                    detailFragment.setArguments(bundle);
-
-                    requireActivity().getSupportFragmentManager()
-                            .beginTransaction()
-                            .replace(R.id.fragment_container, detailFragment)
-                            .addToBackStack(null)
-                            .commit();
+                    openJournalDetailFragment(journal);
                 } else {
                     openAddEditFragment(journal.journal.getPlantId(), journal.journal.getPlantName());
                 }
@@ -81,16 +77,30 @@ public class JournalFragment extends Fragment {
             }
         });
 
-
         binding.recyclerViewJournal.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.recyclerViewJournal.setAdapter(adapter);
+    }
 
+    private void setupObservers() {
         viewModel.getLatestJournalForEachPlant().observe(getViewLifecycleOwner(), journals -> {
-            adapter.submitList(journals);
+            boolean isEmpty = journals == null || journals.isEmpty();
+            binding.recyclerViewJournal.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+            binding.emptyViewLayout.getRoot().setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+
+            if (isEmpty) {
+                binding.emptyViewLayout.setTitle("Chưa có nhật ký nào");
+                binding.emptyViewLayout.setSubtitle("Nhấn nút + để thêm nhật ký cho một cây.");
+            } else {
+                adapter.submitList(journals);
+            }
         });
 
-        binding.fabLayout.fab.setVisibility(View.VISIBLE);
-        binding.fabLayout.fab.setOnClickListener(v -> showPlantSelectionDialog());
+        viewModel.toastMessage.observe(getViewLifecycleOwner(), message -> {
+            if (message != null && !message.isEmpty()) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                viewModel.onToastMessageShown();
+            }
+        });
     }
 
     private void showPopupMenu(View view, JournalWithImages journal) {
@@ -115,9 +125,7 @@ public class JournalFragment extends Fragment {
         viewModel.getAllPlants().observe(getViewLifecycleOwner(), plants -> {
             if (isAdded()) {
                 if (plants != null && !plants.isEmpty()) {
-                    // Create custom adapter
                     PlantSelectionAdapter adapter = new PlantSelectionAdapter(requireContext(), plants);
-
                     new MaterialAlertDialogBuilder(requireContext())
                             .setTitle("Chọn cây để thêm nhật ký")
                             .setAdapter(adapter, (dialog, which) -> {
@@ -128,10 +136,24 @@ public class JournalFragment extends Fragment {
                 } else {
                     Toast.makeText(requireContext(), "Cần có ít nhất 1 cây để thêm nhật ký", Toast.LENGTH_SHORT).show();
                 }
-                // We observe only once to avoid multiple dialogs
                 viewModel.getAllPlants().removeObservers(getViewLifecycleOwner());
             }
         });
+    }
+
+    private void openJournalDetailFragment(JournalWithImages journal) {
+        Bundle bundle = new Bundle();
+        bundle.putInt("plantId", journal.journal.getPlantId());
+        bundle.putString("plantName", journal.journal.getPlantName());
+
+        JournalDetailFragment detailFragment = new JournalDetailFragment();
+        detailFragment.setArguments(bundle);
+
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, detailFragment)
+                .addToBackStack(null)
+                .commit();
     }
 
     private void openAddEditFragment(int plantId, String plantName) {

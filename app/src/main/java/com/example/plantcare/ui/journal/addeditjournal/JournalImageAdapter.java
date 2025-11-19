@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.plantcare.R;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,20 +24,29 @@ public class JournalImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     private final List<String> imageUris = new ArrayList<>();
     private final OnImageClickListener listener;
+    private final boolean isEditMode;
 
     public interface OnImageClickListener {
         void onAddImageClick();
         void onDeleteImageClick(int position);
     }
 
+    // Constructor for view-only mode
+    public JournalImageAdapter() {
+        this.listener = null;
+        this.isEditMode = false;
+    }
+
+    // Constructor for edit mode
     public JournalImageAdapter(OnImageClickListener listener) {
         this.listener = listener;
+        this.isEditMode = true;
     }
 
     @Override
     public int getItemViewType(int position) {
-        // If we are at the last position and have less than MAX_IMAGES, it's an "Add" button
-        if (position == imageUris.size() && imageUris.size() < MAX_IMAGES) {
+        // If in edit mode, show the "Add" button if there's space
+        if (isEditMode && position == imageUris.size() && imageUris.size() < MAX_IMAGES) {
             return VIEW_TYPE_ADD;
         }
         return VIEW_TYPE_IMAGE;
@@ -59,22 +69,36 @@ public class JournalImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if (holder.getItemViewType() == VIEW_TYPE_IMAGE) {
             ImageViewHolder imageHolder = (ImageViewHolder) holder;
-            String uri = imageUris.get(position);
+            String uriString = imageUris.get(position);
+
+            // Glide can handle file paths, content URIs, and URLs directly from a string.
             Glide.with(imageHolder.imageView.getContext())
-                    .load(Uri.parse(uri))
+                    .load(uriString)
                     .into(imageHolder.imageView);
 
-            imageHolder.deleteButton.setOnClickListener(v -> listener.onDeleteImageClick(position));
+            // Show delete button only in edit mode
+            if (isEditMode) {
+                imageHolder.deleteButton.setVisibility(View.VISIBLE);
+                imageHolder.deleteButton.setOnClickListener(v -> {
+                    if (listener != null) {
+                        listener.onDeleteImageClick(holder.getAdapterPosition());
+                    }
+                });
+            } else {
+                imageHolder.deleteButton.setVisibility(View.GONE);
+            }
         } else {
-            // AddViewHolder
-            holder.itemView.setOnClickListener(v -> listener.onAddImageClick());
+            // AddViewHolder - set click listener only in edit mode
+            if (isEditMode && listener != null) {
+                holder.itemView.setOnClickListener(v -> listener.onAddImageClick());
+            }
         }
     }
 
     @Override
     public int getItemCount() {
-        // If we have less than MAX_IMAGES, we have one extra item for the "Add" button
-        if (imageUris.size() < MAX_IMAGES) {
+        // If in edit mode and there's space, add one for the "Add" button
+        if (isEditMode && imageUris.size() < MAX_IMAGES) {
             return imageUris.size() + 1;
         }
         return imageUris.size();
@@ -82,7 +106,9 @@ public class JournalImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     public void submitList(List<String> uris) {
         imageUris.clear();
-        imageUris.addAll(uris);
+        if (uris != null) {
+            imageUris.addAll(uris);
+        }
         notifyDataSetChanged();
     }
 

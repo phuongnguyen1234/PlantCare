@@ -1,9 +1,9 @@
 package com.example.plantcare.ui.journal.addeditjournal;
 
 import android.app.Application;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
@@ -11,25 +11,29 @@ import com.example.plantcare.data.entity.Journal;
 import com.example.plantcare.data.entity.JournalImage;
 import com.example.plantcare.data.model.JournalWithImages;
 import com.example.plantcare.data.repository.JournalRepository;
+import com.example.plantcare.ui.base.BaseViewModel;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-public class AddEditJournalViewModel extends AndroidViewModel {
+public class AddEditJournalViewModel extends BaseViewModel {
+    private static final String TAG = "AddEditJournalVM";
     private final JournalRepository repository;
     private final MutableLiveData<String> content = new MutableLiveData<>();
     private final MutableLiveData<String> dateText = new MutableLiveData<>();
     private final MutableLiveData<List<String>> imageUrls = new MutableLiveData<>(new ArrayList<>());
+    private final Executor executor = Executors.newSingleThreadExecutor();
 
     public AddEditJournalViewModel(@NonNull Application application) {
         super(application);
         repository = new JournalRepository(application);
     }
 
-    // Method for the Fragment to get the Journal with its images
     public LiveData<JournalWithImages> getJournalWithImages(int journalId) {
         return repository.getJournalWithImagesById(journalId);
     }
@@ -80,17 +84,35 @@ public class AddEditJournalViewModel extends AndroidViewModel {
     }
 
     public void saveJournal(int plantId, String plantName, String content, List<String> images) {
-        Journal journal = new Journal();
-        journal.setPlantId(plantId);
-        journal.setPlantName(plantName);
-        journal.setContent(content);
-        journal.setDateCreated(LocalDateTime.now());
-        repository.saveJournalWithImages(journal, images);
+        executor.execute(() -> {
+            try {
+                Journal journal = new Journal();
+                journal.setPlantId(plantId);
+                journal.setPlantName(plantName);
+                journal.setContent(content);
+                journal.setDateCreated(LocalDateTime.now());
+                repository.saveJournalWithImages(journal, images);
+                _toastMessage.postValue("Đã thêm nhật ký");
+                _navigateBack.postValue(true);
+            } catch (Exception e) {
+                Log.e(TAG, "Error saving journal", e);
+                _toastMessage.postValue("Lưu nhật ký thất bại");
+            }
+        });
     }
 
     public void updateJournal(Journal journal, String content, List<String> images) {
-        journal.setContent(content);
-        repository.updateJournalWithImages(journal, images);
+        executor.execute(() -> {
+            try {
+                journal.setContent(content);
+                repository.updateJournalWithImages(journal, images);
+                _toastMessage.postValue("Đã cập nhật nhật ký");
+                _navigateBack.postValue(true);
+            } catch (Exception e) {
+                Log.e(TAG, "Error updating journal", e);
+                _toastMessage.postValue("Cập nhật nhật ký thất bại");
+            }
+        });
     }
 
     public void updateDateText(LocalDateTime dateTime) {

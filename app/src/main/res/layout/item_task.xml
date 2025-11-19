@@ -79,8 +79,8 @@
                 android:layout_height="16dp"
                 android:src="@android:drawable/ic_lock_idle_alarm"
                 app:tint="?attr/colorOnSurface"
-                android:layout_marginBottom="12dp"
-                app:layout_constraintBottom_toTopOf="@id/complete_button"
+                android:layout_marginBottom="4dp"
+                app:layout_constraintBottom_toTopOf="@id/expiration_icon"
                 app:layout_constraintStart_toStartOf="@id/task_name" />
 
             <TextView
@@ -95,6 +95,34 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintBottom_toBottomOf="@id/time_icon"
                 app:layout_constraintTop_toTopOf="@id/time_icon" />
+
+            <ImageView
+                android:id="@+id/expiration_icon"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/hourglass_end"
+                app:tint="@android:color/holo_red_dark"
+                android:visibility="@{task.status == Status.READY ? View.VISIBLE : View.GONE}"
+                tools:visibility="visible"
+                android:layout_marginBottom="12dp"
+                app:layout_constraintBottom_toTopOf="@id/complete_button"
+                app:layout_constraintStart_toStartOf="@id/task_name"/>
+
+            <TextView
+                android:id="@+id/task_expiration"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:maxLines="1"
+                android:textColor="@android:color/holo_red_dark"
+                app:formattedDateTime="@{task.expiration}"
+                android:visibility="@{task.status == Status.READY ? View.VISIBLE : View.GONE}"
+                tools:visibility="visible"
+                tools:text="08:00 05/11/2025"
+                app:layout_constraintStart_toEndOf="@id/expiration_icon"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/expiration_icon"
+                app:layout_constraintBottom_toBottomOf="@id/expiration_icon"/>
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/task_status_chip"

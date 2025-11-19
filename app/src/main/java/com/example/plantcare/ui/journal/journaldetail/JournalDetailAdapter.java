@@ -13,12 +13,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.plantcare.R;
 import com.example.plantcare.data.model.JournalWithImages;
 import com.example.plantcare.databinding.ItemJournalDetailBinding;
-import com.example.plantcare.ui.journal.JournalImageAdapter;
+import com.example.plantcare.ui.journal.addeditjournal.JournalImageAdapter;
 import com.example.plantcare.ui.listeners.OnItemMenuClickListener;
 import com.example.plantcare.utils.MenuUtils;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class JournalDetailAdapter extends ListAdapter<JournalWithImages, JournalDetailAdapter.DetailViewHolder> {
 
@@ -76,8 +77,14 @@ public class JournalDetailAdapter extends ListAdapter<JournalWithImages, Journal
                 RecyclerView.LayoutManager layoutManager = (imageCount == 1) ?
                         new GridLayoutManager(itemView.getContext(), 1) :
                         new GridLayoutManager(itemView.getContext(), 2);
+
+                JournalImageAdapter imageAdapter = new JournalImageAdapter(); // Use view-only constructor
+                imageAdapter.submitList(journalWithImages.images.stream()
+                        .map(image -> image.getImageUrl())
+                        .collect(Collectors.toList()));
+
                 binding.recyclerViewImages.setLayoutManager(layoutManager);
-                binding.recyclerViewImages.setAdapter(new JournalImageAdapter(journalWithImages.images));
+                binding.recyclerViewImages.setAdapter(imageAdapter);
             } else {
                 binding.recyclerViewImages.setVisibility(RecyclerView.GONE);
             }

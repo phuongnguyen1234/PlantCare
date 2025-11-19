@@ -4,10 +4,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -43,22 +43,43 @@ public class TaskFragment extends Fragment implements TaskAdapter.OnItemMenuClic
 
         setupRecyclerView();
         setupNavigation();
+        setupObservers();
 
         binding.fabLayout.fab.setVisibility(View.VISIBLE);
-        binding.fabLayout.fab.setOnClickListener(v -> viewModel.onFabClicked());
+        binding.fabLayout.fab.setOnClickListener(v -> {
+            viewModel.getAllPlants().observe(getViewLifecycleOwner(), plants -> {
+                if (plants != null && !plants.isEmpty()) {
+                    viewModel.onFabClicked();
+                } else {
+                    Toast.makeText(getContext(), "Cần ít nhất 1 cây để tạo công việc", Toast.LENGTH_SHORT).show();
+                }
+                viewModel.getAllPlants().removeObservers(getViewLifecycleOwner()); // Observe once
+            });
+        });
     }
 
     private void setupRecyclerView() {
         adapter = new TaskAdapter();
         adapter.setOnItemMenuClickListener(this);
         binding.rvTasks.setAdapter(adapter);
+    }
 
+    private void setupObservers() {
         viewModel.getAllTasksWithPlants().observe(getViewLifecycleOwner(), tasks -> {
-            if (tasks != null) {
-                adapter.submitList(tasks);
-                Log.d("TASK", "submitList size=" + (tasks == null ? 0 : tasks.size()) + " hash=" + System.identityHashCode(tasks));
-            } else {
-                adapter.submitList(null);
+            boolean isEmpty = tasks == null || tasks.isEmpty();
+            binding.rvTasks.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+            binding.emptyViewLayout.getRoot().setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+
+            if (isEmpty) {
+                binding.emptyViewLayout.setTitle("Chưa có công việc nào");
+                binding.emptyViewLayout.setSubtitle("Nhấn nút + để bắt đầu thêm công việc mới.");
+            }
+        });
+
+        viewModel.toastMessage.observe(getViewLifecycleOwner(), message -> {
+            if (message != null && !message.isEmpty()) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                viewModel.onToastMessageShown();
             }
         });
     }
@@ -96,15 +117,19 @@ public class TaskFragment extends Fragment implements TaskAdapter.OnItemMenuClic
                 .setTitle("Xác nhận xóa")
                 .setMessage("Bạn có chắc chắn muốn xóa công việc này không?")
                 .setPositiveButton("Xóa", () -> viewModel.deleteTask(taskWithPlants.task))
-                .setNegativeButton("Hủy", null) // No action needed for cancel
+                .setNegativeButton("Hủy", null)
                 .show(getParentFragmentManager(), "ConfirmDeleteTaskDialog");
     }
 
     @Override
     public void onCompleteClick(TaskWithPlants taskWithPlants) {
-        viewModel.processTask(taskWithPlants.task, true);
+        viewModel.processTask(taskWithPlants, true);
     }
 
+    @Override
+    public void onExpired(TaskWithPlants taskWithPlants) {
+        viewModel.processTask(taskWithPlants, false);
+    }
 
     @Override
     public void onResume() {
@@ -121,7 +146,7 @@ public class TaskFragment extends Fragment implements TaskAdapter.OnItemMenuClic
             if (taskId != -1) {
                 adapter.getCurrentList().stream()
                         .filter(t -> t.task.getTaskId() == taskId)
-                        .findFirst().ifPresent(twp -> viewModel.processTask(twp.task, true));
+                        .findFirst().ifPresent(twp -> viewModel.processTask(twp, true));
             }
         }
     };

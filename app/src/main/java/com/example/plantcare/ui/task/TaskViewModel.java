@@ -3,30 +3,37 @@ package com.example.plantcare.ui.task;
 import android.app.Application;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Transformations;
 
 import com.example.plantcare.data.entity.History;
+import com.example.plantcare.data.entity.Plant;
 import com.example.plantcare.data.entity.Task;
 import com.example.plantcare.data.enums.FrequencyUnit;
 import com.example.plantcare.data.enums.Status;
 import com.example.plantcare.data.model.TaskWithPlants;
 import com.example.plantcare.data.repository.HistoryRepository;
+import com.example.plantcare.data.repository.PlantRepository;
 import com.example.plantcare.data.repository.TaskRepository;
 import com.example.plantcare.notification.TaskAlarmScheduler;
+import com.example.plantcare.ui.base.BaseViewModel;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class TaskViewModel extends AndroidViewModel {
+public class TaskViewModel extends BaseViewModel {
     private final TaskRepository repository;
-
+    private final PlantRepository plantRepository;
     private final HistoryRepository historyRepository;
 
+    private final LiveData<List<TaskWithPlants>> allTasksWithPlantsSource;
     private final LiveData<List<TaskWithPlants>> allTasksWithPlants;
 
     private final MutableLiveData<Boolean> _navigateToAddTask = new MutableLiveData<>();
@@ -35,93 +42,146 @@ public class TaskViewModel extends AndroidViewModel {
     private final MutableLiveData<Integer> _navigateToEditTask = new MutableLiveData<>();
     public LiveData<Integer> navigateToEditTask = _navigateToEditTask;
 
+    private final Handler statusCheckerHandler = new Handler(Looper.getMainLooper());
+    private Runnable statusCheckerRunnable;
+    private static final long CHECK_INTERVAL_MILLIS = 60000; // 1 minute
+
     public TaskViewModel(@NonNull Application application) {
         super(application);
         repository = new TaskRepository(application);
+        plantRepository = new PlantRepository(application);
         historyRepository = new HistoryRepository(application);
-        allTasksWithPlants = repository.getAllTasksWithPlants();
+
+        allTasksWithPlantsSource = repository.getAllTasksWithPlants();
+        allTasksWithPlantsSource.observeForever(this::cleanupOrphanTasks);
+
+        allTasksWithPlants = Transformations.map(allTasksWithPlantsSource, tasks ->
+                tasks.stream()
+                        .filter(taskWithPlants -> taskWithPlants.plants != null && !taskWithPlants.plants.isEmpty())
+                        .collect(Collectors.toList()));
+
+        startStatusChecker();
+    }
+
+    private void startStatusChecker() {
+        statusCheckerRunnable = new Runnable() {
+            @Override
+            public void run() {
+                List<TaskWithPlants> currentTasks = allTasksWithPlantsSource.getValue();
+                if (currentTasks != null) {
+                    LocalDateTime now = LocalDateTime.now();
+                    for (TaskWithPlants twp : currentTasks) {
+                        if (twp.task != null && (twp.task.getStatus() == Status.SCHEDULED || twp.task.getStatus() == Status.READY) &&
+                            twp.task.getExpiration() != null && twp.task.getExpiration().isBefore(now)) {
+                            processTask(twp, false);
+                        }
+                    }
+                }
+                statusCheckerHandler.postDelayed(this, CHECK_INTERVAL_MILLIS);
+            }
+        };
+        statusCheckerHandler.post(statusCheckerRunnable);
+    }
+
+    private void cleanupOrphanTasks(List<TaskWithPlants> tasks) {
+        if (tasks == null) return;
+        List<Task> orphansToDelete = tasks.stream()
+                .filter(taskWithPlants -> taskWithPlants.plants == null || taskWithPlants.plants.isEmpty())
+                .map(taskWithPlants -> taskWithPlants.task)
+                .collect(Collectors.toList());
+
+        if (!orphansToDelete.isEmpty()) {
+            TaskRepository.databaseWriteExecutor.execute(() -> {
+                for (Task orphan : orphansToDelete) {
+                    TaskAlarmScheduler.cancel(getApplication(), orphan.getTaskId());
+                    repository.delete(orphan);
+                }
+                _toastMessage.postValue("Đã tự động xóa các công việc không hợp lệ.");
+            });
+        }
     }
 
     public LiveData<List<TaskWithPlants>> getAllTasksWithPlants() {
         return allTasksWithPlants;
     }
 
-    public void onFabClicked() {
-        _navigateToAddTask.setValue(true);
-    }
-
-    public void onNavigatedToAddTask() {
-        _navigateToAddTask.setValue(false);
-    }
-
-    public void onEditTask(int taskId) {
-        _navigateToEditTask.setValue(taskId);
-    }
-
-    public void onNavigatedToEditTask() {
-        _navigateToEditTask.setValue(null);
-    }
-
     public void deleteTask(Task task) {
-        // Hủy bỏ alarm trước khi xóa task khỏi DB
-        TaskAlarmScheduler.cancel(getApplication(), task.getTaskId());
-        repository.delete(task);
-        repository.triggerRefresh();
+        TaskRepository.databaseWriteExecutor.execute(() -> {
+            TaskAlarmScheduler.cancel(getApplication(), task.getTaskId());
+            repository.delete(task);
+            _toastMessage.postValue("Đã xóa công việc");
+            repository.triggerRefresh();
+        });
     }
 
-    public void processTask(Task task, boolean isCompleted) {
-        if (task == null) return;
+    public void processTask(TaskWithPlants taskWithPlants, boolean isCompleted) {
+        if (taskWithPlants == null || taskWithPlants.task == null) return;
+
+        if (isCompleted) {
+            if (taskWithPlants.task.getExpiration() != null && taskWithPlants.task.getExpiration().isBefore(LocalDateTime.now())) {
+                _toastMessage.postValue("Không thể hoàn thành công việc đã hết hạn.");
+                return;
+            }
+        }
 
         TaskRepository.databaseWriteExecutor.execute(() -> {
             Context context = getApplication().getApplicationContext();
+            Task task = taskWithPlants.task;
+            
+            String plantNames = "";
+            if(taskWithPlants.plants != null && !taskWithPlants.plants.isEmpty()){
+                 plantNames = taskWithPlants.plants.stream().map(Plant::getName).collect(Collectors.joining(", "));
+            }
 
-            // 1. GHI VÀO HISTORY VỚI DỮ LIỆU GỐC (CHƯA BỊ SỬA)
             History history = new History();
             history.setTaskName(task.getName());
             history.setTaskType(task.getType());
             history.setStatus(isCompleted ? Status.COMPLETED : Status.MISSED);
-            history.setContent((isCompleted ? "Hoàn thành" : "Bỏ lỡ") + " công việc: " + task.getName());
-            history.setNotifyTime(task.getNotifyTime()); // QUAN TRỌNG: Lấy notifyTime gốc
-            history.setDateCompleted(LocalDateTime.now());
+            
+            if (isCompleted) {
+                if (plantNames.isEmpty()) return; 
+                _toastMessage.postValue("Đã hoàn thành " + task.getName());
+                history.setContent("Hoàn thành công việc: " + task.getName() + " cho " + plantNames);
+            } else { 
+                 history.setContent("Bỏ lỡ công việc: " + task.getName() + " cho " + plantNames);
+            }
+            history.setNotifyTime(task.getNotifyTime());
+            history.setDateCompleted((isCompleted? LocalDateTime.now() : null));
             historyRepository.insert(history);
 
-            // 2. Hủy thông báo nếu nó đang hiển thị
             NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             if (manager != null) {
                 manager.cancel(task.getTaskId());
             }
 
-            // 3. XỬ LÝ TASK: Xóa hoặc cập nhật (Bây giờ mới bắt đầu sửa đổi task)
             Integer freq = task.getFrequency();
             if (!task.isRepeat() || freq == null || freq <= 0) {
-                // Không lặp lại -> Xóa Task
                 TaskAlarmScheduler.cancel(context, task.getTaskId());
-                repository.delete(task); // Repository đã được sửa để chạy đồng bộ
+                repository.delete(task);
             } else {
-                // Lặp lại -> Cập nhật Task
-                // TẠO BẢN SAO của task để không sửa đổi instance trong adapter
                 Task taskToUpdate = new Task();
                 taskToUpdate.setTaskId(task.getTaskId());
                 taskToUpdate.setName(task.getName());
                 taskToUpdate.setType(task.getType());
+                taskToUpdate.setRepeat(task.isRepeat());
                 taskToUpdate.setFrequency(task.getFrequency());
                 taskToUpdate.setFrequencyUnit(task.getFrequencyUnit());
-                taskToUpdate.setRepeat(task.isRepeat());
-                taskToUpdate.setNotifyTime(task.getNotifyTime()); // QUAN TRỌNG: Lấy notifyTime gốc
-                taskToUpdate.setExpiration(task.getExpiration());
-                taskToUpdate.setStatus(task.getStatus());
-                taskToUpdate.setNote(task.getNote());
                 taskToUpdate.setNotifyStart(task.getNotifyStart());
                 taskToUpdate.setNotifyEnd(task.getNotifyEnd());
+                taskToUpdate.setNote(task.getNote());
+                taskToUpdate.setNotifyTime(task.getNotifyTime());
+                taskToUpdate.setExpiration(task.getExpiration());
+                taskToUpdate.setStatus(task.getStatus());
 
                 FrequencyUnit freqUnit = taskToUpdate.getFrequencyUnit();
                 LocalDateTime now = LocalDateTime.now();
                 ChronoUnit unit;
                 if (freqUnit == null) {
-                    unit = ChronoUnit.DAYS; // fallback
+                    unit = ChronoUnit.DAYS;
                 } else {
                     switch (freqUnit) {
                         case HOUR: unit = ChronoUnit.HOURS; break;
+                        case DAY: unit = ChronoUnit.DAYS; break;
                         case WEEK: unit = ChronoUnit.WEEKS; break;
                         case MONTH: unit = ChronoUnit.MONTHS; break;
                         case YEAR: unit = ChronoUnit.YEARS; break;
@@ -130,12 +190,11 @@ public class TaskViewModel extends AndroidViewModel {
                 }
 
                 LocalDateTime nextNotifyTime = now.plus(freq, unit);
-                taskToUpdate.setNotifyTime(nextNotifyTime); // Sửa notifyTime
-                taskToUpdate.setExpiration(nextNotifyTime.plusHours(1)); // Sửa expiration
-                taskToUpdate.setStatus(Status.SCHEDULED); // Reset trạng thái
-                repository.update(taskToUpdate); // Gọi hàm update đồng bộ bên trong luồng nền này
-
-                // Lên lịch lại cho lần tiếp theo
+                taskToUpdate.setNotifyTime(nextNotifyTime);
+                taskToUpdate.setExpiration(nextNotifyTime.plusHours(1));
+                taskToUpdate.setStatus(Status.SCHEDULED);
+                
+                repository.update(taskToUpdate);
                 TaskAlarmScheduler.schedule(context, taskToUpdate);
             }
             repository.triggerRefresh();
@@ -143,7 +202,6 @@ public class TaskViewModel extends AndroidViewModel {
     }
 
     public static void processTaskStatic(Context context, Task task, boolean isCompleted) {
-        // Tạo TaskRepository an toàn từ context - dùng Application nếu có
         Application app = null;
         Context appCtx = context.getApplicationContext();
         if (appCtx instanceof Application) {
@@ -157,37 +215,42 @@ public class TaskViewModel extends AndroidViewModel {
             repository = new TaskRepository(app);
             historyRepository = new HistoryRepository(app);
         } else {
-            // fallback: tạo repository dùng AppDatabase trực tiếp (thêm constructor mới bên repository)
             repository = new TaskRepository(context);
             historyRepository = new HistoryRepository(context);
         }
 
-        Status newStatus = isCompleted ? Status.COMPLETED : Status.MISSED;
-
-        // Lưu vào History
         History history = new History();
         history.setTaskName(task.getName());
         history.setTaskType(task.getType());
         history.setStatus(isCompleted ? Status.COMPLETED : Status.MISSED);
-        history.setContent("Đã " + (isCompleted ? "hoàn thành" : "bỏ lỡ") + task.getName());
+        history.setContent("Đã " + (isCompleted ? "hoàn thành" : "bỏ lỡ") + " " + task.getName());
         history.setNotifyTime(task.getNotifyTime());
-        history.setDateCompleted(LocalDateTime.now());
+        history.setDateCompleted((isCompleted? LocalDateTime.now() : null));
         historyRepository.insert(history);
 
-        // Hủy bỏ thông báo (nếu có)
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         manager.cancel(task.getTaskId());
 
         Integer freq = task.getFrequency();
-        // Kiểm tra task có lặp lại không
         if (!task.isRepeat() || freq == null || freq <= 0) {
-            // Không lặp → xóa task
-            // Hủy alarm trước khi xóa
             TaskAlarmScheduler.cancel(context, task.getTaskId());
             repository.delete(task);
         } else {
-            // Task lặp → tính notifyTime tiếp theo
-            FrequencyUnit freqUnit = task.getFrequencyUnit();
+            Task taskToUpdate = new Task();
+            taskToUpdate.setTaskId(task.getTaskId());
+            taskToUpdate.setName(task.getName());
+            taskToUpdate.setType(task.getType());
+            taskToUpdate.setRepeat(task.isRepeat());
+            taskToUpdate.setFrequency(task.getFrequency());
+            taskToUpdate.setFrequencyUnit(task.getFrequencyUnit());
+            taskToUpdate.setNotifyStart(task.getNotifyStart());
+            taskToUpdate.setNotifyEnd(task.getNotifyEnd());
+            taskToUpdate.setNote(task.getNote());
+            taskToUpdate.setNotifyTime(task.getNotifyTime());
+            taskToUpdate.setExpiration(task.getExpiration());
+            taskToUpdate.setStatus(task.getStatus());
+
+            FrequencyUnit freqUnit = taskToUpdate.getFrequencyUnit();
             LocalDateTime now = LocalDateTime.now();
             ChronoUnit unit;
             switch (freqUnit) {
@@ -210,13 +273,41 @@ public class TaskViewModel extends AndroidViewModel {
                     unit = ChronoUnit.DAYS;
             }
             LocalDateTime nextNotifyTime = now.plus(freq, unit);
-            task.setNotifyTime(nextNotifyTime);
-            task.setExpiration(nextNotifyTime.plusHours(1));
-            task.setStatus(Status.SCHEDULED); // Reset trạng thái
-            repository.update(task);
+            taskToUpdate.setNotifyTime(nextNotifyTime);
+            taskToUpdate.setExpiration(nextNotifyTime.plusHours(1));
+            taskToUpdate.setStatus(Status.SCHEDULED);
+            repository.update(taskToUpdate);
 
-            // Reschedule alarm cho lần tiếp theo
-            TaskAlarmScheduler.schedule(context, task);
+            TaskAlarmScheduler.schedule(context, taskToUpdate);
+        }
+    }
+    
+    public void onFabClicked() {
+        _navigateToAddTask.setValue(true);
+    }
+
+    public void onNavigatedToAddTask() {
+        _navigateToAddTask.setValue(false);
+    }
+
+    public void onEditTask(int taskId) {
+        _navigateToEditTask.setValue(taskId);
+    }
+
+    public void onNavigatedToEditTask() {
+        _navigateToEditTask.setValue(null);
+    }
+
+    public LiveData<List<Plant>> getAllPlants() {
+        return plantRepository.getAllPlants();
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        allTasksWithPlantsSource.removeObserver(this::cleanupOrphanTasks);
+        if (statusCheckerHandler != null && statusCheckerRunnable != null) {
+            statusCheckerHandler.removeCallbacks(statusCheckerRunnable);
         }
     }
 }

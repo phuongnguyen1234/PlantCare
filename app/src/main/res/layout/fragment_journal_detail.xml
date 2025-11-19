@@ -8,7 +8,8 @@
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/layout_background_color">
+        android:background="@color/layout_background_color"
+>
 
         <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerViewDetail"
@@ -25,7 +26,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
-            android:layout_marginBottom="16dp"/>
+            android:layout_marginBottom="16dp"
+            android:layout_marginRight="16dp"/>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

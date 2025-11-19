@@ -4,33 +4,24 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="120dp">
+        android:layout_height="wrap_content"
+        android:padding="4dp">
 
-        <androidx.cardview.widget.CardView
+        <com.example.plantcare.ui.journal.addeditjournal.SquareImageView
+            android:id="@+id/ivJournalImage"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="4dp"
-            app:cardCornerRadius="8dp">
-
-            <ImageView
-                android:id="@+id/ivJournalImage"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:contentDescription="Journal Image" />
-
-        </androidx.cardview.widget.CardView>
+            android:layout_height="wrap_content"
+            android:scaleType="centerCrop"
+            app:srcCompat="@drawable/plant_64" />
 
         <ImageView
             android:id="@+id/ivDeleteImage"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_gravity="top|end"
-            android:layout_margin="8dp"
-            android:background="@android:color/black"
+            android:background="@drawable/circle_background"
             android:padding="4dp"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
-            app:tint="@android:color/white" />
+            app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
 
     </FrameLayout>
 </layout>

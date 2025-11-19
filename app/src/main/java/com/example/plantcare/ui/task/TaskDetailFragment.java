@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.plantcare.R;
+import com.example.plantcare.data.entity.Plant;
 import com.example.plantcare.data.entity.Task;
 import com.example.plantcare.data.enums.DisplayableEnum;
 import com.example.plantcare.data.enums.FrequencyUnit;
@@ -30,6 +31,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -95,7 +97,7 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
 
         String taskName = binding.taskNameEdit.getText().toString().trim();
         String taskType = binding.taskTypeDropdown.getText().toString().trim();
-        String notifyTime = binding.notifyTimeEdit.getText().toString().trim();
+        String notifyTimeStr = binding.notifyTimeEdit.getText().toString().trim();
         Set<Integer> selectedPlants = viewModel.selectedPlantIds.getValue();
 
         boolean isValid = true;
@@ -107,13 +109,28 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
             taskTypeLayout.setError("Vui lòng chọn loại công việc");
             isValid = false;
         }
-        if (TextUtils.isEmpty(notifyTime)) {
+        if (TextUtils.isEmpty(notifyTimeStr)) {
             notifyTimeLayout.setError("Vui lòng chọn thời gian");
             isValid = false;
         }
         if (selectedPlants == null || selectedPlants.isEmpty()) {
             Toast.makeText(getContext(), "Vui lòng chọn ít nhất một cây áp dụng", Toast.LENGTH_SHORT).show();
             isValid = false;
+        }
+
+        if (isValid) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            try {
+                LocalDateTime selectedDateTime = LocalDateTime.parse(notifyTimeStr, formatter);
+                // Only check for past time if it's a new task
+                if (currentTaskId == -1 && selectedDateTime.isBefore(LocalDateTime.now())) {
+                    notifyTimeLayout.setError("Không thể đặt thông báo cho thời gian trong quá khứ");
+                    isValid = false;
+                }
+            } catch (Exception e) {
+                notifyTimeLayout.setError("Định dạng thời gian không hợp lệ");
+                isValid = false;
+            }
         }
 
         if (isValid) {
@@ -177,9 +194,16 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
 
     private void setupObservers() {
         viewModel.navigateBack.observe(getViewLifecycleOwner(), navigate -> {
-            if (navigate) {
+            if (navigate != null && navigate) {
                 getParentFragmentManager().popBackStack();
                 viewModel.onNavigatedBack();
+            }
+        });
+
+        viewModel.toastMessage.observe(getViewLifecycleOwner(), message -> {
+            if (message != null && !message.isEmpty()) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                viewModel.onToastMessageShown();
             }
         });
         
@@ -208,6 +232,15 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
                 binding.frequencyUnitDropdown.setText(unit.getDisplayName(), false);
             }
         });
+
+        viewModel.allPlants.observe(getViewLifecycleOwner(), plants -> {
+            if (plants == null || plants.isEmpty()) {
+                Toast.makeText(getContext(), "Không có cây nào để tạo hoặc sửa công việc.", Toast.LENGTH_LONG).show();
+                getParentFragmentManager().popBackStack();
+            } else {
+                setupPlantCheckboxesWithData(plants);
+            }
+        });
     }
 
     private void setupDropdowns() {
@@ -216,26 +249,28 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
     }
 
     private void setupPlantCheckboxes() {
-        viewModel.allPlants.observe(getViewLifecycleOwner(), plants -> {
-            if (plants == null) return;
-            binding.plantsCheckboxContainer.removeAllViews();
-            Set<Integer> currentlySelected = viewModel.selectedPlantIds.getValue();
-
-            for (com.example.plantcare.data.entity.Plant plant : plants) {
-                MaterialCheckBox checkBox = new MaterialCheckBox(requireContext());
-                int plantId = plant.getPlantId();
-                checkBox.setText(plant.getName());
-                checkBox.setTag(plantId);
-
-                if (currentlySelected != null && currentlySelected.contains(plantId)) {
-                    checkBox.setChecked(true);
-                }
-
-                checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> onPlantCheckboxChanged(isChecked, plantId));
-                binding.plantsCheckboxContainer.addView(checkBox);
-            }
-        });
+        // This is now handled by the observer in setupObservers
     }
+
+    private void setupPlantCheckboxesWithData(List<Plant> plants) {
+        binding.plantsCheckboxContainer.removeAllViews();
+        Set<Integer> currentlySelected = viewModel.selectedPlantIds.getValue();
+
+        for (com.example.plantcare.data.entity.Plant plant : plants) {
+            MaterialCheckBox checkBox = new MaterialCheckBox(requireContext());
+            int plantId = plant.getPlantId();
+            checkBox.setText(plant.getName());
+            checkBox.setTag(plantId);
+
+            if (currentlySelected != null && currentlySelected.contains(plantId)) {
+                checkBox.setChecked(true);
+            }
+
+            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> onPlantCheckboxChanged(isChecked, plantId));
+            binding.plantsCheckboxContainer.addView(checkBox);
+        }
+    }
+
 
     private void onPlantCheckboxChanged(boolean isChecked, int plantId) {
         Set<Integer> selectedIds = viewModel.selectedPlantIds.getValue();

@@ -94,9 +94,7 @@ public class AddEditJournalFragment extends BaseFragment<FragmentAddEditJournalB
             viewModel.prepareNewJournalDate();
         }
 
-        binding.btnSave.setOnClickListener(v -> {
-            saveJournal();
-        });
+        binding.btnSave.setOnClickListener(v -> saveJournal());
     }
 
     private void setupRecyclerView() {
@@ -113,6 +111,20 @@ public class AddEditJournalFragment extends BaseFragment<FragmentAddEditJournalB
                 imageAdapter.submitList(uris);
             }
         });
+
+        viewModel.toastMessage.observe(getViewLifecycleOwner(), message -> {
+            if (message != null && !message.isEmpty()) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                viewModel.onToastMessageShown();
+            }
+        });
+
+        viewModel.navigateBack.observe(getViewLifecycleOwner(), navigate -> {
+            if (navigate != null && navigate) {
+                getParentFragmentManager().popBackStack();
+                viewModel.onNavigatedBack();
+            }
+        });
     }
 
     private void saveJournal() {
@@ -127,15 +139,12 @@ public class AddEditJournalFragment extends BaseFragment<FragmentAddEditJournalB
         if (journalId == -1) {
             // Add new journal
             viewModel.saveJournal(plantId, plantName, content, imageUrls);
-            Toast.makeText(getContext(), "Đã thêm nhật ký", Toast.LENGTH_SHORT).show();
         } else {
             // Update existing journal
             if (currentJournal != null) {
                 viewModel.updateJournal(currentJournal, content, imageUrls);
-                Toast.makeText(getContext(), "Đã cập nhật nhật ký", Toast.LENGTH_SHORT).show();
             }
         }
-        getParentFragmentManager().popBackStack();
     }
 
     @Override
