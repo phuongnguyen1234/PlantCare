@@ -1,6 +1,5 @@
 package com.example.plantcare.ui.task;
 
-import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -20,17 +19,15 @@ import com.example.plantcare.data.enums.Status;
 import com.example.plantcare.data.enums.TaskType;
 import com.example.plantcare.databinding.FragmentTaskDetailBinding;
 import com.example.plantcare.ui.main.BaseFragment;
+import com.example.plantcare.utils.DatePickerUtils;
 import com.example.plantcare.utils.DropdownUtils;
 import com.google.android.material.checkbox.MaterialCheckBox;
-import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Objects;
@@ -56,8 +53,16 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            currentTaskId = getArguments().getInt(ARG_TASK_ID, -1);
+        }
+    }
+
+    @Override
     protected String getToolbarTitle() {
-        return ""; // Will be set by ViewModel
+        return currentTaskId == -1 ? "Thêm công việc" : "Sửa công việc";
     }
 
     @Override
@@ -68,10 +73,6 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
         binding.setViewModel(viewModel);
         binding.setLifecycleOwner(getViewLifecycleOwner());
 
-        if (getArguments() != null) {
-            currentTaskId = getArguments().getInt(ARG_TASK_ID, -1);
-        }
-
         setupDropdowns();
         setupPlantCheckboxes();
         setupDateTimePickers();
@@ -79,8 +80,7 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
 
         viewModel.start(currentTaskId);
 
-        binding.addButton.setOnClickListener(v -> validateAndSave());
-        binding.updateButton.setOnClickListener(v -> validateAndSave());
+        binding.saveButton.setOnClickListener(v -> validateAndSave());
     }
 
     private void validateAndSave() {
@@ -134,7 +134,7 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
 
         task.setName(binding.taskNameEdit.getText().toString());
 
-        TaskType type = getEnumValueFromDisplayName(TaskType.class, binding.taskTypeDropdown.getText().toString());
+        TaskType type = DropdownUtils.getEnumValueFromDisplayName(TaskType.class, binding.taskTypeDropdown.getText().toString());
         task.setType(type != null ? type : TaskType.OTHER);
 
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -151,8 +151,8 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
                 task.setFrequency(Integer.parseInt(binding.frequencyEdit.getText().toString()));
             } catch (NumberFormatException e) { task.setFrequency(0); }
             
-            FrequencyUnit unit = getEnumValueFromDisplayName(FrequencyUnit.class, binding.frequencyUnitDropdown.getText().toString());
-            task.setFrequencyUnit(unit != null ? unit : FrequencyUnit.DAY);
+            FrequencyUnit unit = DropdownUtils.getEnumValueFromDisplayName(FrequencyUnit.class, binding.frequencyUnitDropdown.getText().toString());
+            task.setFrequencyUnit(unit != null ? unit : FrequencyUnit.HOUR);
 
             DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
             try {
@@ -162,8 +162,8 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
                 task.setNotifyEnd(LocalTime.parse(binding.endTimeEdit.getText().toString(), timeFormatter).atDate(LocalDate.now()));
             } catch (Exception e) { task.setNotifyEnd(null); }
         } else {
-             task.setFrequency(0);
-            task.setFrequencyUnit(FrequencyUnit.DAY);
+            task.setFrequency(0);
+            task.setFrequencyUnit(FrequencyUnit.HOUR);
             task.setNotifyStart(null);
             task.setNotifyEnd(null);
         }
@@ -175,26 +175,7 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
         return task;
     }
 
-    private <T extends Enum<T> & DisplayableEnum> T getEnumValueFromDisplayName(Class<T> enumClass, String displayName) {
-        if (TextUtils.isEmpty(displayName) || enumClass.getEnumConstants() == null) {
-            return null;
-        }
-        for (T enumValue : enumClass.getEnumConstants()) {
-            if (Objects.equals(enumValue.getDisplayName(), displayName)) {
-                return enumValue;
-            }
-        }
-        return null;
-    }
-
     private void setupObservers() {
-        viewModel.toolbarTitle.observe(getViewLifecycleOwner(), title -> {
-            TextView toolbarTitle = requireActivity().findViewById(R.id.toolbar_title);
-            if (toolbarTitle != null) {
-                toolbarTitle.setText(title);
-            }
-        });
-
         viewModel.navigateBack.observe(getViewLifecycleOwner(), navigate -> {
             if (navigate) {
                 getParentFragmentManager().popBackStack();
@@ -271,46 +252,51 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
 
     private void setupDateTimePickers() {
         TextInputLayout notifyTimeLayout = (TextInputLayout) binding.notifyTimeEdit.getParent().getParent();
-        notifyTimeLayout.setEndIconOnClickListener(v -> showDatePicker());
 
+        // Create a single click listener for showing the date-time picker
+        View.OnClickListener dateTimePickerClickListener = v -> {
+            LocalDateTime initialDateTime = LocalDateTime.now();
+            String currentText = binding.notifyTimeEdit.getText().toString();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            if (!TextUtils.isEmpty(currentText)) {
+                try {
+                    initialDateTime = LocalDateTime.parse(currentText, formatter);
+                } catch (Exception e) {
+                    // Ignore parse error, use now()
+                }
+            }
+            DatePickerUtils.showDateTimePickerDialog(
+                    requireContext(),
+                    initialDateTime,
+                    selectedDateTime -> binding.notifyTimeEdit.setText(selectedDateTime.format(formatter))
+            );
+        };
+
+        // Set the listener on both the EditText and the end icon
+        binding.notifyTimeEdit.setOnClickListener(dateTimePickerClickListener);
+        notifyTimeLayout.setEndIconOnClickListener(dateTimePickerClickListener);
+
+        // Setup for time-only pickers
         binding.startTimeEdit.setOnClickListener(v -> showTimePickerDialog(binding.startTimeEdit));
         binding.endTimeEdit.setOnClickListener(v -> showTimePickerDialog(binding.endTimeEdit));
     }
 
-    private void showDatePicker() {
-        MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker()
-                .setTitleText("Chọn ngày")
-                .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
-                .build();
-
-        datePicker.addOnPositiveButtonClickListener(selection -> {
-            Instant instant = Instant.ofEpochMilli(selection);
-            LocalDate selectedDate = instant.atZone(ZoneId.systemDefault()).toLocalDate();
-
-            LocalTime now = LocalTime.now();
-            TimePickerDialog timePickerDialog = new TimePickerDialog(getContext(), (view, hourOfDay, minute) -> {
-                LocalTime selectedTime = LocalTime.of(hourOfDay, minute);
-                LocalDateTime finalDateTime = LocalDateTime.of(selectedDate, selectedTime);
-                
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-                binding.notifyTimeEdit.setText(finalDateTime.format(formatter));
-
-            }, now.getHour(), now.getMinute(), true);
-
-            timePickerDialog.show();
-        });
-
-        datePicker.show(getParentFragmentManager(), "DATE_PICKER");
-    }
-
     private void showTimePickerDialog(TextInputEditText timeEditText) {
-        LocalTime now = LocalTime.now();
-        TimePickerDialog timePickerDialog = new TimePickerDialog(getContext(), (view, hourOfDay, minuteOfHour) -> {
-            LocalTime selectedTime = LocalTime.of(hourOfDay, minuteOfHour);
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-            timeEditText.setText(selectedTime.format(formatter));
-        }, now.getHour(), now.getMinute(), true);
+        LocalTime initialTime = LocalTime.now();
+        String currentText = timeEditText.getText().toString();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        if (!TextUtils.isEmpty(currentText)) {
+            try {
+                initialTime = LocalTime.parse(currentText, formatter);
+            } catch (Exception e) {
+                // Ignore parse error, use now()
+            }
+        }
 
-        timePickerDialog.show();
+        DatePickerUtils.showTimePickerDialog(
+                requireContext(),
+                initialTime,
+                selectedTime -> timeEditText.setText(selectedTime.format(formatter))
+        );
     }
 }

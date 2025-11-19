@@ -54,8 +54,4 @@ public class HistoryRepository {
             return historyDao.getFilteredHistoriesWithStatus(taskType, statuses, date, query);
         }
     }
-
-    public LiveData<List<History>> getHistoryByStatus(String status) {
-        return historyDao.getHistoryByStatus(status);
-    }
 }

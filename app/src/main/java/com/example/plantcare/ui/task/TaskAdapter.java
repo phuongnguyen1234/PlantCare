@@ -3,11 +3,9 @@ package com.example.plantcare.ui.task;
 import android.annotation.SuppressLint;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
@@ -15,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.plantcare.R;
 import com.example.plantcare.data.entity.Plant;
 import com.example.plantcare.data.entity.Task;
-import com.example.plantcare.data.enums.Status;
 import com.example.plantcare.data.model.TaskWithPlants;
 import com.example.plantcare.databinding.ItemTaskBinding;
 import com.example.plantcare.utils.MenuUtils;
@@ -132,7 +129,7 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
                 if (position != RecyclerView.NO_POSITION && listener != null) {
                     TaskWithPlants taskWithPlants = ((TaskAdapter) getBindingAdapter()).getItem(position);
 
-                    MenuUtils.showCustomPopupMenu(v, R.menu.task_item_menu, item -> {
+                    MenuUtils.showCustomPopupMenu(v, R.menu.edit_delete_menu, item -> {
                         int itemId = item.getItemId();
                         if (itemId == R.id.menu_edit) {
                             listener.onEditClick(taskWithPlants.task.getTaskId());

@@ -80,15 +80,19 @@
                     android:text="Tên cây" />
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/CustomTextInputLayout"
+                    android:id="@+id/plantNameLayout"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    app:hintEnabled="false"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    app:boxBackgroundColor="@color/white">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/et_plant_name"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@{plant.name}"
+                        android:hint="Cây xương rồng"
                         />
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -99,16 +103,21 @@
                     android:text="Ngày trồng" />
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/CustomTextInputLayout"
+                    android:id="@+id/plantingDateLayout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    app:boxBackgroundColor="@color/white"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    app:endIconMode="custom"
+                    app:endIconDrawable="@android:drawable/ic_menu_my_calendar"
+                    app:hintEnabled="false">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/et_planting_date"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:drawableEnd="@android:drawable/ic_menu_my_calendar"
-                        android:focusable="false" />
+                        android:focusable="false"
+                        android:hint="Chọn ngày trồng"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Care Needs -->
@@ -135,11 +144,13 @@
                     android:orientation="horizontal">
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/CustomTextInputLayout"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
-                        android:layout_weight="1">
+                        android:layout_weight="1"
+                        app:hintEnabled="false"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        app:boxBackgroundColor="@color/white">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/et_water_frequency"
@@ -147,14 +158,16 @@
                             android:layout_height="wrap_content"
                             android:inputType="number"
                             android:text='@{plant != null &amp;&amp; plant.waterFrequency > 0 ? String.valueOf(plant.waterFrequency) : ""}'
-                            />
+                            android:hint="6"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
                         style="@style/CustomExposedDropdownMenu"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1">
+                        android:layout_weight="1"
+                        app:hintEnabled="false"
+                        app:boxBackgroundColor="@color/white">
 
                         <AutoCompleteTextView
                             android:id="@+id/actv_water_unit"
@@ -163,7 +176,7 @@
                             android:inputType="none"
                             android:text='@{plant != null &amp;&amp; plant.waterUnit != null ? plant.waterUnit.getDisplayName() : ""}'
                             tools:ignore="LabelFor"
-                            />
+                            android:hint="Tần suất"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
                 </LinearLayout>
@@ -182,11 +195,13 @@
                     android:orientation="horizontal">
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/CustomTextInputLayout"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
-                        android:layout_weight="1">
+                        android:layout_weight="1"
+                        app:hintEnabled="false"
+                        style="@style/CustomTextInputLayout"
+                        app:boxBackgroundColor="@color/white">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/et_fertilizer_frequency"
@@ -194,14 +209,16 @@
                             android:layout_height="wrap_content"
                             android:inputType="number"
                             android:text='@{plant != null &amp;&amp; plant.fertilizerFrequency > 0 ? String.valueOf(plant.fertilizerFrequency) : ""}'
-                            />
+                            android:hint="3"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
                         style="@style/CustomExposedDropdownMenu"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1">
+                        android:layout_weight="1"
+                        app:hintEnabled="false"
+                        app:boxBackgroundColor="@color/white">
 
                         <AutoCompleteTextView
                             android:id="@+id/actv_fertilizer_unit"
@@ -210,7 +227,7 @@
                             android:inputType="none"
                             android:text='@{plant != null &amp;&amp; plant.fertilizerUnit != null ? plant.fertilizerUnit.getDisplayName() : ""}'
                             tools:ignore="LabelFor"
-                            />
+                            android:hint="Tần suất" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                 </LinearLayout>
@@ -229,11 +246,13 @@
                     android:orientation="horizontal">
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/CustomTextInputLayout"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        app:boxBackgroundColor="@color/white"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
-                        android:layout_weight="1">
+                        android:layout_weight="1"
+                        app:hintEnabled="false">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/et_light_frequency"
@@ -241,14 +260,16 @@
                             android:layout_height="wrap_content"
                             android:inputType="number"
                             android:text='@{plant != null &amp;&amp; plant.lightFrequency > 0 ? String.valueOf(plant.lightFrequency) : ""}'
-                            />
+                            android:hint="1"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
                         style="@style/CustomExposedDropdownMenu"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1">
+                        android:layout_weight="1"
+                        app:hintEnabled="false"
+                        app:boxBackgroundColor="@color/white">
 
                         <AutoCompleteTextView
                             android:id="@+id/actv_light_unit"
@@ -257,7 +278,7 @@
                             android:inputType="none"
                             android:text='@{plant != null &amp;&amp; plant.lightUnit != null ? plant.lightUnit.getDisplayName() : ""}'
                             tools:ignore="LabelFor"
-                            />
+                            android:hint="Tần suất"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
                 </LinearLayout>
@@ -276,34 +297,38 @@
                     android:orientation="horizontal">
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/CustomTextInputLayout"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        app:boxBackgroundColor="@color/white"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
                         android:layout_weight="1"
-                        app:suffixText="°C">
+                        app:suffixText="°C"
+                        app:hintEnabled="false">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/et_temp_min"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="numberDecimal"
-                            />
+                            android:hint="27"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/CustomTextInputLayout"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        app:boxBackgroundColor="@color/white"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        app:suffixText="°C">
+                        app:suffixText="°C"
+                        app:hintEnabled="false">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/et_temp_max"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="numberDecimal"
-                            />
+                            android:hint="30"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
                 </LinearLayout>
@@ -322,34 +347,38 @@
                     android:orientation="horizontal">
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/CustomTextInputLayout"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        app:boxBackgroundColor="@color/white"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
                         android:layout_weight="1"
-                        app:suffixText="%">
+                        app:suffixText="%"
+                        app:hintEnabled="false">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/et_humidity_min"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="numberDecimal"
-                            />
+                            android:hint="20"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/CustomTextInputLayout"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        app:boxBackgroundColor="@color/white"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        app:suffixText="%">
+                        app:suffixText="%"
+                        app:hintEnabled="false">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/et_humidity_max"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="numberDecimal"
-                            />
+                            android:hint="40"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
                 </LinearLayout>
@@ -362,21 +391,23 @@
                     android:text="Ghi chú" />
 
                 <com.google.android.material.textfield.TextInputLayout
-                    style="@style/CustomTextInputLayout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    app:boxBackgroundColor="@color/white"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp">
+                    android:layout_marginBottom="16dp"
+                    app:hintEnabled="false">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/et_note"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="top"
-                        android:minHeight="120dp"
+                        android:inputType="textMultiLine"
+                        android:minLines="3"
                         android:text="@{plant.note}"
-                        />
+                        android:hint="Không cần nhiều nước mỗi lần tưới..."/>
                 </com.google.android.material.textfield.TextInputLayout>
-
             </LinearLayout>
 
         </androidx.core.widget.NestedScrollView>

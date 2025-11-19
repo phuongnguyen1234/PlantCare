@@ -116,13 +116,6 @@ public class MainActivity extends AppCompatActivity implements ToolbarAndNavCont
             return windowInsets;
         });
 
-        // === XỬ LÝ INSETS CHO DRAWER (NavigationView) ===
-        ViewCompat.setOnApplyWindowInsetsListener(binding.navView, (v, windowInsets) -> {
-            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(0, insets.top, 0, insets.bottom); // né status & nav bar
-            return windowInsets;
-        });
-
         // === XỬ LÝ INSETS CHO HEADER TRONG DRAWER ===
         View headerView = binding.navView.getHeaderView(0);
         ViewCompat.setOnApplyWindowInsetsListener(headerView, (v, windowInsets) -> {

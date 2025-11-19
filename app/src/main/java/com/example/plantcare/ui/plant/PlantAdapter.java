@@ -70,7 +70,7 @@ public class PlantAdapter extends ListAdapter<Plant, PlantAdapter.ViewHolder> {
                 return false;
             };
 
-            MenuUtils.showCustomPopupMenu(v, R.menu.add_edit_menu, listener);
+            MenuUtils.showCustomPopupMenu(v, R.menu.edit_delete_menu, listener);
         });
     }
 

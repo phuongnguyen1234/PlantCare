@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- State ON: Màu xanh lá cây đậm (giống màu nút "Áp dụng") -->
+    <item android:color="#16A34A" android:state_checked="true" />
+    <!-- State OFF: Màu xám rất nhạt (gần như trắng) -->
+    <item android:color="#EEEEEE" />
+</selector>

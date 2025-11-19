@@ -15,9 +15,13 @@
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="6dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         app:cardCornerRadius="12dp"
-        app:cardElevation="8dp">
+        app:cardElevation="8dp"
+        app:strokeWidth="0dp">
 
         <LinearLayout
             android:id="@+id/itemLayout"
@@ -98,7 +102,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:minHeight="28dp"
-                    android:text="@{history.taskName}"
+                    android:text="@{history.content}"
                     android:textColor="@{history.status == Status.COMPLETED ? @color/history_green: @color/history_orange}"
                     android:textSize="17sp"
                     android:textStyle="italic"

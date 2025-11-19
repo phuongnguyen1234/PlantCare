@@ -81,6 +81,17 @@ public class PlantRepository {
         }
     }
 
+    public void deleteImageFile(String path) {
+        if (path != null && !path.isEmpty()) {
+            File imageFile = new File(path);
+            if (imageFile.exists()) {
+                if (!imageFile.delete()) {
+                    Log.w(TAG, "Failed to delete image file: " + path);
+                }
+            }
+        }
+    }
+
     public void insert(Plant plant) {
         executorService.execute(() -> plantDao.insert(plant));
     }
@@ -91,14 +102,7 @@ public class PlantRepository {
 
     public void delete(Plant plant) {
         executorService.execute(() -> {
-            if (plant.getImageUrl() != null && !plant.getImageUrl().isEmpty()) {
-                File imageFile = new File(plant.getImageUrl());
-                if (imageFile.exists()) {
-                    if (!imageFile.delete()) {
-                        Log.w(TAG, "Failed to delete image file: " + plant.getImageUrl());
-                    }
-                }
-            }
+            deleteImageFile(plant.getImageUrl());
             plantDao.delete(plant);
         });
     }

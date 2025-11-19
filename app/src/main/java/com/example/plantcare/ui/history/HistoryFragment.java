@@ -81,7 +81,8 @@ public class HistoryFragment extends BaseFragment<FragmentHistoryBinding> {
 
         DropdownUtils.setupEnumDropdown(bottomSheetBinding.spnTaskType, TaskType.class);
 
-        bottomSheetBinding.tvNotifyDate.setOnClickListener(v -> {
+        // Create a single click listener for showing the date picker
+        View.OnClickListener datePickerClickListener = v -> {
             LocalDate initialDate = LocalDate.now();
             String currentDateString = bottomSheetBinding.tvNotifyDate.getText().toString();
             DateTimeFormatter userFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -97,7 +98,11 @@ public class HistoryFragment extends BaseFragment<FragmentHistoryBinding> {
                     initialDate,
                     selectedDate -> bottomSheetBinding.tvNotifyDate.setText(selectedDate.format(userFormatter))
             );
-        });
+        };
+
+        // Set the listener on both the EditText and the end icon
+        bottomSheetBinding.tvNotifyDate.setOnClickListener(datePickerClickListener);
+        bottomSheetBinding.notifyDateLayout.setEndIconOnClickListener(datePickerClickListener);
 
         HistoryViewModel.FilterParams currentFilter = mViewModel.getFilterParams().getValue();
         if (currentFilter != null && !currentFilter.isClear()) {

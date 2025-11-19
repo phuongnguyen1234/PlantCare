@@ -18,6 +18,10 @@
 
     <!-- Error -->
     <color name="red_pale">#FF8A80</color>
+    <color name="red_delete">#D32F2F</color> <!-- Màu đỏ đậm hơn cho icon Xóa -->
+
+    <!-- Icon Colors -->
+    <color name="grey_icon">#8A000000</color> <!-- Màu xám cho icon Sửa (54% black) -->
 
     <!-- màu cho phần history fragment-->
     <color name="history_green">#4CAF50</color>

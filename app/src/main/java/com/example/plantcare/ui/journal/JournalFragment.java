@@ -1,25 +1,36 @@
 package com.example.plantcare.ui.journal;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.bumptech.glide.Glide;
 import com.example.plantcare.R;
 import com.example.plantcare.data.entity.Plant;
 import com.example.plantcare.data.model.JournalWithImages;
 import com.example.plantcare.databinding.FragmentJournalBinding;
+import com.example.plantcare.ui.dialog.ConfirmDialog;
 import com.example.plantcare.ui.journal.addeditjournal.AddEditJournalFragment;
 import com.example.plantcare.ui.journal.journaldetail.JournalDetailFragment;
 import com.example.plantcare.ui.main.ToolbarAndNavControl;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import java.io.File;
+import java.util.List;
 
 public class JournalFragment extends Fragment {
 
@@ -87,14 +98,12 @@ public class JournalFragment extends Fragment {
         popupMenu.getMenuInflater().inflate(R.menu.journal_item_menu, popupMenu.getMenu());
         popupMenu.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.action_delete_all) {
-                new AlertDialog.Builder(requireContext())
+                new ConfirmDialog.Builder()
                         .setTitle("Xóa tất cả nhật ký")
                         .setMessage("Bạn có chắc chắn muốn xóa tất cả nhật ký cho cây \"" + journal.journal.getPlantName() + "\"?")
-                        .setPositiveButton("Xóa", (dialog, which) -> {
-                            viewModel.deleteAllJournalsForPlant(journal.journal.getPlantId());
-                        })
+                        .setPositiveButton("Xóa", () -> viewModel.deleteAllJournalsForPlant(journal.journal.getPlantId()))
                         .setNegativeButton("Hủy", null)
-                        .show();
+                        .show(getParentFragmentManager(), "ConfirmDeleteAllJournalsDialog");
                 return true;
             }
             return false;
@@ -104,16 +113,23 @@ public class JournalFragment extends Fragment {
 
     private void showPlantSelectionDialog() {
         viewModel.getAllPlants().observe(getViewLifecycleOwner(), plants -> {
-            if (isAdded() && plants != null && !plants.isEmpty()) {
-                String[] plantNames = plants.stream().map(Plant::getName).toArray(String[]::new);
+            if (isAdded()) {
+                if (plants != null && !plants.isEmpty()) {
+                    // Create custom adapter
+                    PlantSelectionAdapter adapter = new PlantSelectionAdapter(requireContext(), plants);
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-                builder.setTitle("Chọn cây để thêm nhật ký")
-                        .setItems(plantNames, (dialog, which) -> {
-                            Plant selectedPlant = plants.get(which);
-                            openAddEditFragment(selectedPlant.getPlantId(), selectedPlant.getName());
-                        });
-                builder.create().show();
+                    new MaterialAlertDialogBuilder(requireContext())
+                            .setTitle("Chọn cây để thêm nhật ký")
+                            .setAdapter(adapter, (dialog, which) -> {
+                                Plant selectedPlant = plants.get(which);
+                                openAddEditFragment(selectedPlant.getPlantId(), selectedPlant.getName());
+                            })
+                            .create().show();
+                } else {
+                    Toast.makeText(requireContext(), "Cần có ít nhất 1 cây để thêm nhật ký", Toast.LENGTH_SHORT).show();
+                }
+                // We observe only once to avoid multiple dialogs
+                viewModel.getAllPlants().removeObservers(getViewLifecycleOwner());
             }
         });
     }
@@ -142,6 +158,41 @@ public class JournalFragment extends Fragment {
         super.onResume();
         if (getActivity() instanceof ToolbarAndNavControl) {
             ((ToolbarAndNavControl) getActivity()).showToolbarAndNav(true);
+        }
+    }
+
+    private static class PlantSelectionAdapter extends ArrayAdapter<Plant> {
+
+        public PlantSelectionAdapter(@NonNull Context context, @NonNull List<Plant> plants) {
+            super(context, 0, plants);
+        }
+
+        @NonNull
+        @Override
+        public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+            if (convertView == null) {
+                convertView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_plant_selection_item, parent, false);
+            }
+
+            ImageView plantImage = convertView.findViewById(R.id.plant_image);
+            TextView plantName = convertView.findViewById(R.id.plant_name);
+
+            Plant plant = getItem(position);
+
+            if (plant != null) {
+                plantName.setText(plant.getName());
+
+                if (!TextUtils.isEmpty(plant.getImageUrl())) {
+                    Glide.with(getContext())
+                            .load(new File(plant.getImageUrl()))
+                            .placeholder(R.drawable.plant_64)
+                            .error(R.drawable.plant_64)
+                            .into(plantImage);
+                } else {
+                    Glide.with(getContext()).load(R.drawable.plant_64).into(plantImage);
+                }
+            }
+            return convertView;
         }
     }
 }

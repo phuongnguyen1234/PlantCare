@@ -6,7 +6,7 @@ import android.content.Context;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Calendar;
+import java.time.LocalTime;
 
 public class DatePickerUtils {
 
@@ -17,6 +17,10 @@ public class DatePickerUtils {
 
     public interface OnDateTimeSelectedListener {
         void onDateTimeSelected(LocalDateTime dateTime);
+    }
+
+    public interface OnTimeSelectedListener {
+        void onTimeSelected(LocalTime time);
     }
 
     /**
@@ -61,5 +65,22 @@ public class DatePickerUtils {
                 initialDateTime.getYear(),
                 initialDateTime.getMonthValue() - 1,
                 initialDateTime.getDayOfMonth()).show();
+    }
+
+    /**
+     * Shows a TimePickerDialog and returns the selected time via a callback.
+     * @param context Context to display the dialog in.
+     * @param initialTime The time to initially show in the picker.
+     * @param listener Callback to be invoked with the selected time.
+     */
+    public static void showTimePickerDialog(Context context, LocalTime initialTime, OnTimeSelectedListener listener) {
+        TimePickerDialog.OnTimeSetListener timeSetListener = (view, hourOfDay, minute) -> {
+            listener.onTimeSelected(LocalTime.of(hourOfDay, minute));
+        };
+
+        new TimePickerDialog(context, timeSetListener,
+                initialTime.getHour(),
+                initialTime.getMinute(),
+                true).show();
     }
 }

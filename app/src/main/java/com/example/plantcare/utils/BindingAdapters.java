@@ -66,7 +66,7 @@ public class BindingAdapters {
     @BindingAdapter("formattedDateTime")
     public static void setFormattedDateTime(TextView textView, LocalDateTime dateTime) {
         if (dateTime != null) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
             textView.setText(dateTime.format(formatter));
         } else {
             textView.setText("");

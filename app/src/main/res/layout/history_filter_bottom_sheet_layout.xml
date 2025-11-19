@@ -29,12 +29,16 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Bộ lọc" />
+                    android:text="Bộ lọc"
+                    android:textColor="@color/colorPrimary"
+                    android:textStyle="bold"/>
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/filterSwitch"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    app:thumbTint="@color/switch_thumb_color"
+                    app:trackTint="@color/switch_track_color" />
             </LinearLayout>
 
             <!-- Group of filter controls -->
@@ -50,7 +54,8 @@
                     style="@style/TextAppearance.Material3.TitleMedium"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Loại công việc" />
+                    android:text="Loại công việc"
+                    />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/taskTypeMenu"
@@ -58,13 +63,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:hint="Chọn loại công việc">
+                    app:hintEnabled="false" >
 
                     <AutoCompleteTextView
                         android:id="@+id/spnTaskType"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="none" />
+                        android:inputType="none"
+                        android:hint="Chọn loại công việc"/>
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -82,7 +88,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:hint="Tất cả"
+                    app:hintEnabled="false"
                     app:endIconDrawable="@drawable/ic_calendar_black_24dp"
                     app:endIconMode="custom">
 
@@ -90,7 +96,9 @@
                         android:id="@+id/tvNotifyDate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="text" />
+                        android:focusable="false"
+                        android:inputType="text"
+                        android:hint="Tất cả"/>
 
                 </com.google.android.material.textfield.TextInputLayout>
 

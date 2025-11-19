@@ -1,38 +1,24 @@
 package com.example.plantcare.ui.task;
 
-import static androidx.lifecycle.AndroidViewModel_androidKt.getApplication;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.example.plantcare.R;
-import com.example.plantcare.data.entity.Task;
 import com.example.plantcare.data.model.TaskWithPlants;
-import com.example.plantcare.data.repository.TaskRepository;
 import com.example.plantcare.databinding.FragmentTaskBinding;
-import com.example.plantcare.notification.TaskActionReceiver;
-import com.example.plantcare.notification.TaskAlarmScheduler;
+import com.example.plantcare.ui.dialog.ConfirmDialog;
 import com.example.plantcare.ui.main.ToolbarAndNavControl;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-
 
 public class TaskFragment extends Fragment implements TaskAdapter.OnItemMenuClickListener {
 
@@ -106,28 +92,12 @@ public class TaskFragment extends Fragment implements TaskAdapter.OnItemMenuClic
 
     @Override
     public void onDeleteClick(TaskWithPlants taskWithPlants) {
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
-        LayoutInflater inflater = this.getLayoutInflater();
-        View dialogView = inflater.inflate(R.layout.dialog_confirm_delete, null);
-        builder.setView(dialogView);
-
-        final AlertDialog dialog = builder.create();
-
-        Button btnCancel = dialogView.findViewById(R.id.btn_cancel);
-        Button btnDelete = dialogView.findViewById(R.id.btn_delete);
-
-        btnCancel.setOnClickListener(v -> dialog.dismiss());
-
-        btnDelete.setOnClickListener(v -> {
-            viewModel.deleteTask(taskWithPlants.task);
-            dialog.dismiss();
-        });
-
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        }
-
-        dialog.show();
+        new ConfirmDialog.Builder()
+                .setTitle("Xác nhận xóa")
+                .setMessage("Bạn có chắc chắn muốn xóa công việc này không?")
+                .setPositiveButton("Xóa", () -> viewModel.deleteTask(taskWithPlants.task))
+                .setNegativeButton("Hủy", null) // No action needed for cancel
+                .show(getParentFragmentManager(), "ConfirmDeleteTaskDialog");
     }
 
     @Override

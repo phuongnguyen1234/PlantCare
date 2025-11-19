@@ -56,8 +56,8 @@ import com.example.plantcare.data.entity.Task;
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
             );
 
-            String title = "Đến giờ cho cây 🌿";
-            String message = "Công việc: " + task.getName();
+            String title = "Bạn ơi! Cây của bạn đang cần được chăm sóc!";
+            String message = task.getName() + " đã sẵn sàng để hoàn thành";
 
             Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_notification)

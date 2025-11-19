@@ -98,7 +98,7 @@ public class JournalDetailAdapter extends ListAdapter<JournalWithImages, Journal
                     }
                     return false;
                 };
-                MenuUtils.showCustomPopupMenu(v, R.menu.add_edit_menu, menuListener);
+                MenuUtils.showCustomPopupMenu(v, R.menu.edit_delete_menu, menuListener);
             });
         }
     }

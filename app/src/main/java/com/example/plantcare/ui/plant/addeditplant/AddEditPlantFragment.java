@@ -41,7 +41,6 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
             plantId = getArguments().getInt("plantId", -1);
         }
 
-        // The launcher now only updates the ViewModel for the preview
         pickMediaLauncher = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
             if (uri != null) {
                 mViewModel.setPlantImageUri(uri);
@@ -67,23 +66,22 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
         binding.setViewModel(mViewModel);
         binding.setLifecycleOwner(getViewLifecycleOwner());
 
-        // 1. SETUP UI FIRST: Populate dropdowns and prepare UI elements.
         setupUI();
         observeViewModel();
 
-        // 2. LOAD DATA: Now that the UI is ready, load the data.
         if (plantId != -1) {
             mViewModel.getPlantById(plantId).observe(getViewLifecycleOwner(), plant -> {
                 if (plant != null) {
                     currentPlant = plant;
+                    mViewModel.setOriginalImageUrl(plant.getImageUrl()); // Important: Set original image URL
                     binding.setPlant(currentPlant);
                     updateUIWithPlantData(currentPlant);
                 }
             });
         } else {
             currentPlant = new Plant();
+            mViewModel.setOriginalImageUrl(null); // Important: No original image for new plant
             binding.setPlant(currentPlant);
-            // Set today's date for new plants
             binding.etPlantingDate.setText(LocalDate.now().format(dateFormatter));
         }
     }
@@ -96,20 +94,25 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
             }
         });
 
-        binding.etPlantingDate.setOnClickListener(v -> {
+        View.OnClickListener datePickerClickListener = v -> {
             LocalDate initialDate = LocalDate.now();
-            try {
-                // Try to parse the existing date to pre-set the dialog
-                initialDate = LocalDate.parse(binding.etPlantingDate.getText().toString(), dateFormatter);
-            } catch (Exception e) {
-                // Ignore and use today's date if parsing fails
+            String currentText = binding.etPlantingDate.getText().toString();
+            if (!TextUtils.isEmpty(currentText)) {
+                try {
+                    initialDate = LocalDate.parse(currentText, dateFormatter);
+                } catch (Exception e) {
+                    // Ignore parse error, use today's date
+                }
             }
             DatePickerUtils.showDatePickerDialog(
                     requireContext(),
                     initialDate,
                     selectedDate -> binding.etPlantingDate.setText(selectedDate.format(dateFormatter))
             );
-        });
+        };
+
+        binding.etPlantingDate.setOnClickListener(datePickerClickListener);
+        binding.plantingDateLayout.setEndIconOnClickListener(datePickerClickListener);
 
         binding.ivPlantImage.setOnClickListener(v -> {
             pickMediaLauncher.launch(new PickVisualMediaRequest.Builder()
@@ -121,7 +124,6 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
             mViewModel.setPlantImageUri(null);
         });
 
-        // This populates the dropdowns with ALL possible values.
         DropdownUtils.setupEnumDropdown(binding.actvWaterUnit, FrequencyUnit.class);
         DropdownUtils.setupEnumDropdown(binding.actvFertilizerUnit, FrequencyUnit.class);
         DropdownUtils.setupEnumDropdown(binding.actvLightUnit, FrequencyUnit.class);
@@ -144,13 +146,7 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
     }
 
     private void updateUIWithPlantData(Plant plant) {
-        // Update the image preview from the saved URI
-        if (plant.getImageUrl() != null && !plant.getImageUrl().isEmpty()) {
-            mViewModel.setPlantImageUri(Uri.parse(plant.getImageUrl()));
-        } else {
-            mViewModel.setPlantImageUri(null);
-        }
-
+        // The ViewModel now manages the image Uri, this fragment just observes
         if (plant.getDatePlanted() != null) {
             binding.etPlantingDate.setText(plant.getDatePlanted().format(dateFormatter));
         }
@@ -209,9 +205,6 @@ public class AddEditPlantFragment extends BaseFragment<FragmentAddEditPlantBindi
     }
 
     private void updatePlantFromFields() {
-        // The ViewModel now handles image processing.
-        // The fragment is only responsible for updating the plant's data fields from the UI.
-
         currentPlant.setName(binding.etPlantName.getText().toString());
 
         try {

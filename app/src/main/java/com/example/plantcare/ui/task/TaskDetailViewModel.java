@@ -37,9 +37,6 @@ public class TaskDetailViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> _isEditMode = new MutableLiveData<>(false);
     public LiveData<Boolean> isEditMode = _isEditMode;
 
-    private final MutableLiveData<String> _toolbarTitle = new MutableLiveData<>();
-    public LiveData<String> toolbarTitle = _toolbarTitle;
-
     private final MutableLiveData<Boolean> _navigateBack = new MutableLiveData<>(false);
     public LiveData<Boolean> navigateBack = _navigateBack;
 
@@ -71,12 +68,10 @@ public class TaskDetailViewModel extends AndroidViewModel {
     public void start(int taskId) {
         if (taskId != -1) {
             _isEditMode.setValue(true);
-            _toolbarTitle.setValue("Sửa công việc");
             taskRepository.getTaskById(taskId).observeForever(this::populateFieldsFromTask);
             taskScopeRepository.getPlantsByTaskId(taskId).observeForever(this::updateSelectedPlants);
         } else {
             _isEditMode.setValue(false);
-            _toolbarTitle.setValue("Thêm công việc");
             resetFields();
         }
     }
@@ -163,7 +158,6 @@ public class TaskDetailViewModel extends AndroidViewModel {
         }
     }
 
-    public void onCompleteClicked() { _navigateBack.setValue(true); }
     public void onNavigatedBack() { _navigateBack.setValue(false); }
 
     @Override

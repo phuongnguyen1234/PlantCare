@@ -37,9 +37,9 @@ public class MenuUtils {
                 editItem.setIcon(smallerEditIcon);
             }
 
-            // Tint icon to match default text color
-            int defaultTextColor = ContextCompat.getColor(context, R.color.white);
-            editItem.setIconTintList(ColorStateList.valueOf(defaultTextColor));
+            // Tint icon to grey
+            int greyColor = ContextCompat.getColor(context, R.color.grey_icon);
+            editItem.setIconTintList(ColorStateList.valueOf(greyColor));
         }
 
         if (deleteItem != null) {
@@ -51,12 +51,12 @@ public class MenuUtils {
                 deleteItem.setIcon(smallerDeleteIcon);
             }
 
-            // Tint icon and text
-            int redPaleColor = ContextCompat.getColor(context, R.color.red_pale);
+            // Tint icon and text to a darker red
+            int redDeleteColor = ContextCompat.getColor(context, R.color.red_delete);
             SpannableString deleteTitle = new SpannableString(deleteItem.getTitle());
-            deleteTitle.setSpan(new ForegroundColorSpan(redPaleColor), 0, deleteTitle.length(), 0);
+            deleteTitle.setSpan(new ForegroundColorSpan(redDeleteColor), 0, deleteTitle.length(), 0);
             deleteItem.setTitle(deleteTitle);
-            deleteItem.setIconTintList(ColorStateList.valueOf(redPaleColor));
+            deleteItem.setIconTintList(ColorStateList.valueOf(redDeleteColor));
         }
 
         // Force icons to show

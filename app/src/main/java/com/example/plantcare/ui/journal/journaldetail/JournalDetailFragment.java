@@ -5,13 +5,13 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.plantcare.R;
 import com.example.plantcare.data.model.JournalWithImages;
 import com.example.plantcare.databinding.FragmentJournalDetailBinding;
+import com.example.plantcare.ui.dialog.ConfirmDialog;
 import com.example.plantcare.ui.journal.JournalViewModel;
 import com.example.plantcare.ui.journal.addeditjournal.AddEditJournalFragment;
 import com.example.plantcare.ui.listeners.OnItemMenuClickListener;
@@ -98,13 +98,11 @@ public class JournalDetailFragment extends BaseFragment<FragmentJournalDetailBin
 
     @Override
     public void onDeleteClicked(JournalWithImages item) {
-        new AlertDialog.Builder(requireContext())
+        new ConfirmDialog.Builder()
                 .setTitle("Xóa nhật ký")
                 .setMessage("Bạn có chắc chắn muốn xóa mục nhật ký này?")
-                .setPositiveButton("Xóa", (dialog, which) -> {
-                    viewModel.deleteJournal(item.journal);
-                })
+                .setPositiveButton("Xóa", () -> viewModel.deleteJournal(item.journal))
                 .setNegativeButton("Hủy", null)
-                .show();
+                .show(getParentFragmentManager(), "ConfirmDeleteJournalDialog");
     }
 }

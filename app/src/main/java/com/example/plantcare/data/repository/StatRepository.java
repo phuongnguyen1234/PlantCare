@@ -20,14 +20,12 @@ public class StatRepository {
     private final PlantDao plantDao;
 
     private final TaskDao taskDao;
-    private final ExecutorService executorService;
 
     public StatRepository(Application application) {
         AppDatabase db = AppDatabase.getDatabase(application);
         historyDao = db.historyDao();
         plantDao = db.plantDao();
         taskDao = db.taskDao();
-        executorService = AppDatabase.databaseWriteExecutor;
     }
 
     public LiveData<Integer> getTaskCount() {
@@ -36,8 +34,8 @@ public class StatRepository {
 
     public LiveData<Integer> getDueSoonTaskCount() {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime threeDaysFromNow = now.plusDays(3);
-        return taskDao.getDueSoonTaskCount(now, threeDaysFromNow);
+        LocalDateTime thirtyMinutesFromNow = now.plusMinutes(30);
+        return taskDao.getDueSoonTaskCount(now, thirtyMinutesFromNow);
     }
 
     public LiveData<Integer> getTodayCompletedTaskCount() {

@@ -69,12 +69,6 @@ public class TaskViewModel extends AndroidViewModel {
         repository.triggerRefresh();
     }
 
-    /** Cho TaskFragment gọi khi nhận Broadcast từ notification */
-    public void reloadTasks() {
-        // Vì LiveData lấy từ Room → chỉ cần gọi repo để kích LiveData update
-        repository.triggerRefresh();
-    }
-
     public void processTask(Task task, boolean isCompleted) {
         if (task == null) return;
 
@@ -119,7 +113,6 @@ public class TaskViewModel extends AndroidViewModel {
                 taskToUpdate.setNote(task.getNote());
                 taskToUpdate.setNotifyStart(task.getNotifyStart());
                 taskToUpdate.setNotifyEnd(task.getNotifyEnd());
-
 
                 FrequencyUnit freqUnit = taskToUpdate.getFrequencyUnit();
                 LocalDateTime now = LocalDateTime.now();
@@ -176,7 +169,7 @@ public class TaskViewModel extends AndroidViewModel {
         history.setTaskName(task.getName());
         history.setTaskType(task.getType());
         history.setStatus(isCompleted ? Status.COMPLETED : Status.MISSED);
-        history.setContent((isCompleted ? "Hoàn thành" : "Bỏ lỡ") + " công việc: " + task.getName());
+        history.setContent("Đã " + (isCompleted ? "hoàn thành" : "bỏ lỡ") + task.getName());
         history.setNotifyTime(task.getNotifyTime());
         history.setDateCompleted(LocalDateTime.now());
         historyRepository.insert(history);

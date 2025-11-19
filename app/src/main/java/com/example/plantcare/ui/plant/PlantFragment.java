@@ -16,20 +16,16 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.plantcare.R;
 import com.example.plantcare.data.entity.Plant;
 import com.example.plantcare.databinding.FragmentPlantBinding;
+import com.example.plantcare.ui.dialog.ConfirmDialog;
 import com.example.plantcare.ui.listeners.OnItemMenuClickListener;
 import com.example.plantcare.ui.main.ToolbarAndNavControl;
 import com.example.plantcare.ui.plant.addeditplant.AddEditPlantFragment;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class PlantFragment extends Fragment implements OnItemMenuClickListener<Plant> {
 
     private PlantViewModel mViewModel;
     private FragmentPlantBinding binding;
     private PlantAdapter plantAdapter;
-
-    public static PlantFragment newInstance() {
-        return new PlantFragment();
-    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -107,13 +103,11 @@ public class PlantFragment extends Fragment implements OnItemMenuClickListener<P
 
     @Override
     public void onDeleteClicked(Plant plant) {
-        new MaterialAlertDialogBuilder(requireContext())
+        new ConfirmDialog.Builder()
                 .setTitle("Xóa cây")
-                .setMessage("Bạn có chắc chắn muốn xóa cây '" + plant.getName() + "' không? Mọi dữ liệu liên quan cũng sẽ bị xóa.")
-                .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
-                .setPositiveButton("Xóa", (dialog, which) -> {
-                    mViewModel.delete(plant);
-                })
-                .show();
+                .setMessage("Bạn có chắc chắn muốn xóa " + plant.getName() + " không? Đừng lo, nhật ký của cây này sẽ không bị xóa.")
+                .setPositiveButton("Xóa", () -> mViewModel.delete(plant))
+                .setNegativeButton("Hủy", null)
+                .show(getParentFragmentManager(), "ConfirmDeletePlantDialog");
     }
 }

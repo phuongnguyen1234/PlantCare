@@ -58,7 +58,7 @@ public class StatFragment extends Fragment {
                 ArrayList<BarEntry> entries = new ArrayList<>();
                 List<String> labels = new ArrayList<>();
                 DateTimeFormatter dbFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                DateTimeFormatter displayFormatter = DateTimeFormatter.ofPattern("dd/MM");
+                DateTimeFormatter displayFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
                 for (int i = 0; i < dailyTaskCounts.size(); i++) {
                     entries.add(new BarEntry(i, dailyTaskCounts.get(i).count));
