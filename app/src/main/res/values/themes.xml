@@ -27,4 +27,12 @@
     <style name="fully_rounded_search" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <item name="shapeAppearanceOverlay">@style/CircleShape</item>
     </style>
+
+    <!-- Style for the full-screen dialog -->
+    <style name="FullScreenDialogStyle" parent="Theme.Material3.Light.Dialog">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
 </resources>

@@ -1,19 +1,20 @@
 package com.example.plantcare.ui.journal.addeditjournal;
 
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.plantcare.R;
+import com.example.plantcare.ui.dialog.FullScreenImageDialogFragment;
 
-import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class JournalImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -45,7 +46,6 @@ public class JournalImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     @Override
     public int getItemViewType(int position) {
-        // If in edit mode, show the "Add" button if there's space
         if (isEditMode && position == imageUris.size() && imageUris.size() < MAX_IMAGES) {
             return VIEW_TYPE_ADD;
         }
@@ -71,12 +71,10 @@ public class JournalImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             ImageViewHolder imageHolder = (ImageViewHolder) holder;
             String uriString = imageUris.get(position);
 
-            // Glide can handle file paths, content URIs, and URLs directly from a string.
             Glide.with(imageHolder.imageView.getContext())
                     .load(uriString)
                     .into(imageHolder.imageView);
 
-            // Show delete button only in edit mode
             if (isEditMode) {
                 imageHolder.deleteButton.setVisibility(View.VISIBLE);
                 imageHolder.deleteButton.setOnClickListener(v -> {
@@ -86,9 +84,15 @@ public class JournalImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 });
             } else {
                 imageHolder.deleteButton.setVisibility(View.GONE);
+                imageHolder.imageView.setOnClickListener(v -> {
+                    if (v.getContext() instanceof AppCompatActivity) {
+                        AppCompatActivity activity = (AppCompatActivity) v.getContext();
+                        FullScreenImageDialogFragment.newInstance(uriString)
+                                .show(activity.getSupportFragmentManager(), "FullScreenImageDialog");
+                    }
+                });
             }
         } else {
-            // AddViewHolder - set click listener only in edit mode
             if (isEditMode && listener != null) {
                 holder.itemView.setOnClickListener(v -> listener.onAddImageClick());
             }
@@ -97,7 +101,6 @@ public class JournalImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     @Override
     public int getItemCount() {
-        // If in edit mode and there's space, add one for the "Add" button
         if (isEditMode && imageUris.size() < MAX_IMAGES) {
             return imageUris.size() + 1;
         }
@@ -112,7 +115,16 @@ public class JournalImageAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         notifyDataSetChanged();
     }
 
-    // --- ViewHolders ---
+    public void moveItem(int fromPosition, int toPosition) {
+        if (fromPosition < imageUris.size() && toPosition < imageUris.size()) {
+            Collections.swap(imageUris, fromPosition, toPosition);
+            notifyItemMoved(fromPosition, toPosition);
+        }
+    }
+
+    public List<String> getImageUris() {
+        return new ArrayList<>(imageUris);
+    }
 
     static class ImageViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;

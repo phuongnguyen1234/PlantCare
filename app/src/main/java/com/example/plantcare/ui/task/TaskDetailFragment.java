@@ -76,24 +76,30 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
         binding.setLifecycleOwner(getViewLifecycleOwner());
 
         setupDropdowns();
-        setupPlantCheckboxes();
         setupDateTimePickers();
         setupObservers();
 
         viewModel.start(currentTaskId);
 
         binding.saveButton.setOnClickListener(v -> validateAndSave());
+        binding.selectAllPlantsCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            viewModel.onSelectAllChanged(isChecked);
+        });
     }
 
     private void validateAndSave() {
         TextInputLayout taskNameLayout = (TextInputLayout)binding.taskNameEdit.getParent().getParent();
         TextInputLayout taskTypeLayout = (TextInputLayout)binding.taskTypeDropdown.getParent().getParent();
         TextInputLayout notifyTimeLayout = (TextInputLayout)binding.notifyTimeEdit.getParent().getParent();
+        TextInputLayout frequencyLayout = (TextInputLayout) binding.frequencyEdit.getParent().getParent();
+        TextInputLayout frequencyUnitLayout = (TextInputLayout) binding.frequencyUnitDropdown.getParent().getParent();
 
         taskNameLayout.setError(null);
         taskTypeLayout.setError(null);
         notifyTimeLayout.setError(null);
         notifyTimeLayout.setErrorIconDrawable(null);
+        frequencyLayout.setError(null);
+        frequencyUnitLayout.setError(null);
 
         String taskName = binding.taskNameEdit.getText().toString().trim();
         String taskType = binding.taskTypeDropdown.getText().toString().trim();
@@ -116,6 +122,17 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
         if (selectedPlants == null || selectedPlants.isEmpty()) {
             Toast.makeText(getContext(), "Vui lòng chọn ít nhất một cây áp dụng", Toast.LENGTH_SHORT).show();
             isValid = false;
+        }
+
+        if (binding.repeatCheckbox.isChecked()) {
+            if (TextUtils.isEmpty(binding.frequencyEdit.getText().toString())) {
+                frequencyLayout.setError("Vui lòng nhập tần suất");
+                isValid = false;
+            }
+            if (TextUtils.isEmpty(binding.frequencyUnitDropdown.getText().toString())) {
+                frequencyUnitLayout.setError("Vui lòng chọn đơn vị");
+                isValid = false;
+            }
         }
 
         if (isValid) {
@@ -209,16 +226,16 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
         
         viewModel.selectedPlantIds.observe(getViewLifecycleOwner(), selectedIds -> {
             if (selectedIds == null) return;
-            for (int i = 0; i < binding.plantsCheckboxContainer.getChildCount(); i++) {
-                View child = binding.plantsCheckboxContainer.getChildAt(i);
-                if (child instanceof MaterialCheckBox) {
-                    MaterialCheckBox cb = (MaterialCheckBox) child;
-                    int plantId = (int) cb.getTag();
-                    cb.setOnCheckedChangeListener(null);
-                    cb.setChecked(selectedIds.contains(plantId));
-                    cb.setOnCheckedChangeListener((buttonView, isChecked) -> onPlantCheckboxChanged(isChecked, plantId));
-                }
-            }
+            updatePlantCheckboxes(selectedIds);
+            viewModel.checkSelectAllState(); // Check after selection changes
+        });
+
+        viewModel.selectAllPlants.observe(getViewLifecycleOwner(), isSelected -> {
+            // Temporarily remove the listener to prevent loops
+            binding.selectAllPlantsCheckbox.setOnCheckedChangeListener(null);
+            binding.selectAllPlantsCheckbox.setChecked(isSelected);
+            binding.selectAllPlantsCheckbox.setOnCheckedChangeListener((buttonView, isChecked_)
+                    -> viewModel.onSelectAllChanged(isChecked_));
         });
 
         viewModel.taskType.observe(getViewLifecycleOwner(), type -> {
@@ -239,6 +256,10 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
                 getParentFragmentManager().popBackStack();
             } else {
                 setupPlantCheckboxesWithData(plants);
+                viewModel.checkSelectAllState(); // Check after all plants are loaded
+                if (currentTaskId == -1) { // If in "add mode"
+                    viewModel.onSelectAllChanged(true); // Select all by default
+                }
             }
         });
     }
@@ -246,10 +267,6 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
     private void setupDropdowns() {
         DropdownUtils.setupEnumDropdown(binding.taskTypeDropdown, TaskType.class);
         DropdownUtils.setupEnumDropdown(binding.frequencyUnitDropdown, FrequencyUnit.class);
-    }
-
-    private void setupPlantCheckboxes() {
-        // This is now handled by the observer in setupObservers
     }
 
     private void setupPlantCheckboxesWithData(List<Plant> plants) {
@@ -266,23 +283,23 @@ public class TaskDetailFragment extends BaseFragment<FragmentTaskDetailBinding> 
                 checkBox.setChecked(true);
             }
 
-            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> onPlantCheckboxChanged(isChecked, plantId));
+            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> viewModel.onPlantSelectionChanged(plantId, isChecked));
             binding.plantsCheckboxContainer.addView(checkBox);
         }
     }
-
-
-    private void onPlantCheckboxChanged(boolean isChecked, int plantId) {
-        Set<Integer> selectedIds = viewModel.selectedPlantIds.getValue();
-        if (selectedIds == null) {
-            selectedIds = new HashSet<>();
+    
+    private void updatePlantCheckboxes(Set<Integer> selectedIds) {
+        if (selectedIds == null) return;
+        for (int i = 0; i < binding.plantsCheckboxContainer.getChildCount(); i++) {
+            View child = binding.plantsCheckboxContainer.getChildAt(i);
+            if (child instanceof MaterialCheckBox) {
+                MaterialCheckBox cb = (MaterialCheckBox) child;
+                int plantId = (int) cb.getTag();
+                cb.setOnCheckedChangeListener(null); // Avoid triggering listener
+                cb.setChecked(selectedIds.contains(plantId));
+                cb.setOnCheckedChangeListener((buttonView, isChecked) -> viewModel.onPlantSelectionChanged(plantId, isChecked));
+            }
         }
-        if (isChecked) {
-            selectedIds.add(plantId);
-        } else {
-            selectedIds.remove(plantId);
-        }
-        viewModel.selectedPlantIds.setValue(selectedIds);
     }
 
     private void setupDateTimePickers() {

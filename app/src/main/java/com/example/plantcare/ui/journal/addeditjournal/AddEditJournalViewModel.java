@@ -78,6 +78,9 @@ public class AddEditJournalViewModel extends BaseViewModel {
             imageUrls.setValue(new ArrayList<>(currentUris)); // Trigger observer with a new list
         }
     }
+    public void updateImageOrder(List<String> newOrder) {
+        imageUrls.setValue(newOrder);
+    }
 
     public void prepareNewJournalDate() {
         updateDateText(LocalDateTime.now());

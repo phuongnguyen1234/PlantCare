@@ -16,12 +16,13 @@
 
         <ImageView
             android:id="@+id/ivDeleteImage"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:layout_gravity="top|end"
-            android:background="@drawable/circle_background"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="4dp"
-            app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
+            app:srcCompat="@android:drawable/ic_menu_close_clear_cancel"
+            app:tint="@android:color/black"/>
 
     </FrameLayout>
 </layout>

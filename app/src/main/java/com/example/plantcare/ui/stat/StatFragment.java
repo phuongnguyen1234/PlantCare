@@ -35,10 +35,6 @@ public class StatFragment extends Fragment {
     private StatViewModel mViewModel;
     private FragmentStatBinding binding;
 
-    public static StatFragment newInstance() {
-        return new StatFragment();
-    }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -48,17 +44,24 @@ public class StatFragment extends Fragment {
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(StatViewModel.class);
         binding.setViewModel(mViewModel);
 
         mViewModel.getDailyCompletedTaskCounts().observe(getViewLifecycleOwner(), dailyTaskCounts -> {
-            if (dailyTaskCounts != null && !dailyTaskCounts.isEmpty()) {
+            boolean isEmpty = dailyTaskCounts == null || dailyTaskCounts.isEmpty();
+            binding.barChart.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+            binding.emptyViewLayout.getRoot().setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+
+            if (isEmpty) {
+                binding.emptyViewLayout.setTitle("Chưa có dữ liệu thống kê");
+                binding.emptyViewLayout.setSubtitle("Hãy hoàn thành một vài công việc và quay lại đây xem biểu đồ nhé.");
+            } else {
                 ArrayList<BarEntry> entries = new ArrayList<>();
                 List<String> labels = new ArrayList<>();
                 DateTimeFormatter dbFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                DateTimeFormatter displayFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                DateTimeFormatter displayFormatter = DateTimeFormatter.ofPattern("dd/MM");
 
                 for (int i = 0; i < dailyTaskCounts.size(); i++) {
                     entries.add(new BarEntry(i, dailyTaskCounts.get(i).count));
@@ -90,14 +93,14 @@ public class StatFragment extends Fragment {
                 binding.barChart.setData(barData);
                 binding.barChart.getDescription().setEnabled(false);
                 binding.barChart.getLegend().setEnabled(false);
-                binding.barChart.setExtraBottomOffset(40f); 
+                binding.barChart.setExtraBottomOffset(10f); // Adjust offset if needed
 
                 XAxis xAxis = binding.barChart.getXAxis();
                 xAxis.setValueFormatter(new IndexAxisValueFormatter(labels));
                 xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
                 xAxis.setGranularity(1f);
                 xAxis.setGranularityEnabled(true);
-                xAxis.setLabelCount(labels.size()); 
+                xAxis.setLabelCount(labels.size());
                 xAxis.setLabelRotationAngle(-45);
                 xAxis.setTextColor(Color.BLACK);
                 xAxis.setDrawGridLines(false); // Disable X-axis grid lines
@@ -110,11 +113,8 @@ public class StatFragment extends Fragment {
 
 
                 binding.barChart.getAxisRight().setEnabled(false);
-                binding.barChart.setFitBars(true); 
+                binding.barChart.setFitBars(true);
                 binding.barChart.animateY(1000);
-                binding.barChart.invalidate();
-            } else {
-                binding.barChart.clear();
                 binding.barChart.invalidate();
             }
         });

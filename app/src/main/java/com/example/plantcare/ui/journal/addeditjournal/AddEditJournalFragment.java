@@ -12,6 +12,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.plantcare.R;
 import com.example.plantcare.data.entity.Journal;
@@ -101,6 +103,41 @@ public class AddEditJournalFragment extends BaseFragment<FragmentAddEditJournalB
         imageAdapter = new JournalImageAdapter(this);
         binding.rvImages.setAdapter(imageAdapter);
         binding.rvImages.setLayoutManager(new GridLayoutManager(getContext(), 3));
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(
+                ItemTouchHelper.UP | ItemTouchHelper.DOWN | ItemTouchHelper.START | ItemTouchHelper.END, 0) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                int fromPosition = viewHolder.getAdapterPosition();
+                int toPosition = target.getAdapterPosition();
+
+                if (viewHolder.getItemViewType() != target.getItemViewType()) {
+                    return false;
+                }
+
+                imageAdapter.moveItem(fromPosition, toPosition);
+                return true;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) { }
+
+            @Override
+            public void clearView(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                super.clearView(recyclerView, viewHolder);
+                viewModel.updateImageOrder(imageAdapter.getImageUris());
+            }
+
+            @Override
+            public int getDragDirs(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
+                if (viewHolder instanceof JournalImageAdapter.AddViewHolder) {
+                    return 0;
+                }
+                return super.getDragDirs(recyclerView, viewHolder);
+            }
+        });
+
+        itemTouchHelper.attachToRecyclerView(binding.rvImages);
     }
 
     private void observeViewModel() {

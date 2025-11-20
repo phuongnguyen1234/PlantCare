@@ -47,6 +47,9 @@ public class TaskDetailViewModel extends BaseViewModel {
     public final MutableLiveData<String> note = new MutableLiveData<>();
     public final MutableLiveData<Set<Integer>> selectedPlantIds = new MutableLiveData<>(new HashSet<>());
 
+    private final MutableLiveData<Boolean> _selectAllPlants = new MutableLiveData<>(true);
+    public LiveData<Boolean> selectAllPlants = _selectAllPlants;
+
     public LiveData<List<Plant>> allPlants;
 
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -121,6 +124,7 @@ public class TaskDetailViewModel extends BaseViewModel {
         notifyEnd.setValue("");
         note.setValue("");
         selectedPlantIds.setValue(new HashSet<>());
+        _selectAllPlants.setValue(true);
     }
 
     private void populateFieldsFromTask(Task task) {
@@ -138,7 +142,9 @@ public class TaskDetailViewModel extends BaseViewModel {
 
     private void updateSelectedPlants(List<TaskScope> scopes) {
         if (scopes == null) return;
-        selectedPlantIds.setValue(scopes.stream().map(TaskScope::getPlantId).collect(Collectors.toSet()));
+        Set<Integer> ids = scopes.stream().map(TaskScope::getPlantId).collect(Collectors.toSet());
+        selectedPlantIds.setValue(ids);
+        checkSelectAllState();
     }
 
     public void onIsRepeatChanged(boolean isChecked) {
@@ -147,6 +153,43 @@ public class TaskDetailViewModel extends BaseViewModel {
             frequencyUnit.setValue(null);
             notifyStart.setValue("");
             notifyEnd.setValue("");
+        }
+    }
+
+    public void onSelectAllChanged(boolean isChecked) {
+        _selectAllPlants.setValue(isChecked);
+        Set<Integer> newSelectedIds = new HashSet<>();
+        if (isChecked) {
+            List<Plant> all = allPlants.getValue();
+            if (all != null) {
+                for (Plant plant : all) {
+                    newSelectedIds.add(plant.getPlantId());
+                }
+            }
+        }
+        selectedPlantIds.setValue(newSelectedIds);
+    }
+
+    public void onPlantSelectionChanged(int plantId, boolean isSelected) {
+        Set<Integer> currentIds = selectedPlantIds.getValue();
+        if (currentIds == null) currentIds = new HashSet<>();
+
+        if (isSelected) {
+            currentIds.add(plantId);
+        } else {
+            currentIds.remove(plantId);
+        }
+        selectedPlantIds.setValue(currentIds);
+        checkSelectAllState();
+    }
+
+    public void checkSelectAllState() {
+        List<Plant> all = allPlants.getValue();
+        Set<Integer> selected = selectedPlantIds.getValue();
+        if (all != null && selected != null) {
+            _selectAllPlants.setValue(all.size() == selected.size());
+        } else {
+            _selectAllPlants.setValue(false);
         }
     }
 }
