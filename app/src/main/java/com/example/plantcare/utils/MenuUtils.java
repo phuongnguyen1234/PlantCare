@@ -2,7 +2,6 @@ package com.example.plantcare.utils;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.graphics.drawable.Drawable;
 import android.graphics.drawable.InsetDrawable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
@@ -17,47 +16,27 @@ import java.lang.reflect.Field;
 
 public class MenuUtils {
 
-    public static void showCustomPopupMenu(View anchor, int menuRes, PopupMenu.OnMenuItemClickListener listener) {
+    public interface PopupMenuCustomizer {
+        void customize(PopupMenu popupMenu);
+    }
+
+    public static void showCustomPopupMenu(View anchor, int menuRes, PopupMenuCustomizer customizer, PopupMenu.OnMenuItemClickListener listener) {
         Context context = anchor.getContext();
         PopupMenu popupMenu = new PopupMenu(context, anchor);
         popupMenu.getMenuInflater().inflate(menuRes, popupMenu.getMenu());
 
-        // --- Start of Customization Logic ---
-
-        // Menu items
-        MenuItem deleteItem = popupMenu.getMenu().findItem(R.id.menu_delete);
-        MenuItem editItem = popupMenu.getMenu().findItem(R.id.menu_edit);
-
-        if (editItem != null) {
-            // Scale icon
-            int inset = 12;
-            Drawable originalEditIcon = editItem.getIcon();
-            if (originalEditIcon != null) {
-                InsetDrawable smallerEditIcon = new InsetDrawable(originalEditIcon, inset, inset, inset, inset);
-                editItem.setIcon(smallerEditIcon);
-            }
-
-            // Tint icon to grey
-            int greyColor = ContextCompat.getColor(context, R.color.grey_icon);
-            editItem.setIconTintList(ColorStateList.valueOf(greyColor));
+        if (customizer != null) {
+            customizer.customize(popupMenu);
         }
 
-        if (deleteItem != null) {
-            // Scale icon
-            int inset = 12;
-            Drawable originalDeleteIcon = deleteItem.getIcon();
-            if (originalDeleteIcon != null) {
-                InsetDrawable smallerDeleteIcon = new InsetDrawable(originalDeleteIcon, inset, inset, inset, inset);
-                deleteItem.setIcon(smallerDeleteIcon);
-            }
+        // --- Start of Styling Logic ---
+        int redDeleteColor = ContextCompat.getColor(context, R.color.red_delete);
+        int greyColor = ContextCompat.getColor(context, R.color.grey_icon);
 
-            // Tint icon and text to a darker red
-            int redDeleteColor = ContextCompat.getColor(context, R.color.red_delete);
-            SpannableString deleteTitle = new SpannableString(deleteItem.getTitle());
-            deleteTitle.setSpan(new ForegroundColorSpan(redDeleteColor), 0, deleteTitle.length(), 0);
-            deleteItem.setTitle(deleteTitle);
-            deleteItem.setIconTintList(ColorStateList.valueOf(redDeleteColor));
-        }
+        styleMenuItem(popupMenu.getMenu().findItem(R.id.menu_edit), greyColor, false);
+        styleMenuItem(popupMenu.getMenu().findItem(R.id.menu_delete), redDeleteColor, true);
+        styleMenuItem(popupMenu.getMenu().findItem(R.id.action_delete_all), redDeleteColor, true);
+        // --- End of Styling Logic ---
 
         // Force icons to show
         try {
@@ -69,9 +48,33 @@ public class MenuUtils {
             e.printStackTrace();
         }
 
-        // --- End of Customization Logic ---
-
         popupMenu.setOnMenuItemClickListener(listener);
         popupMenu.show();
+    }
+
+    public static void showCustomPopupMenu(View anchor, int menuRes, PopupMenu.OnMenuItemClickListener listener) {
+        showCustomPopupMenu(anchor, menuRes, null, listener);
+    }
+
+    private static void styleMenuItem(MenuItem menuItem, int color, boolean tintText) {
+        if (menuItem == null) {
+            return;
+        }
+
+        if (menuItem.getIcon() != null) {
+            // Scale icon
+            int inset = 12;
+            InsetDrawable smallerIcon = new InsetDrawable(menuItem.getIcon(), inset, inset, inset, inset);
+            menuItem.setIcon(smallerIcon);
+
+            // Tint icon
+            menuItem.setIconTintList(ColorStateList.valueOf(color));
+        }
+
+        if (tintText) {
+            SpannableString title = new SpannableString(menuItem.getTitle());
+            title.setSpan(new ForegroundColorSpan(color), 0, title.length(), 0);
+            menuItem.setTitle(title);
+        }
     }
 }

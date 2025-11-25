@@ -13,7 +13,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -27,6 +26,7 @@ import com.example.plantcare.ui.dialog.ConfirmDialog;
 import com.example.plantcare.ui.journal.addeditjournal.AddEditJournalFragment;
 import com.example.plantcare.ui.journal.journaldetail.JournalDetailFragment;
 import com.example.plantcare.ui.main.ToolbarAndNavControl;
+import com.example.plantcare.utils.MenuUtils;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
@@ -104,9 +104,10 @@ public class JournalFragment extends Fragment {
     }
 
     private void showPopupMenu(View view, JournalWithImages journal) {
-        PopupMenu popupMenu = new PopupMenu(requireContext(), view);
-        popupMenu.getMenuInflater().inflate(R.menu.journal_item_menu, popupMenu.getMenu());
-        popupMenu.setOnMenuItemClickListener(item -> {
+        MenuUtils.showCustomPopupMenu(view, R.menu.option_menu, popupMenu -> {
+            popupMenu.getMenu().findItem(R.id.menu_edit).setVisible(false);
+            popupMenu.getMenu().findItem(R.id.menu_delete).setVisible(false);
+        }, item -> {
             if (item.getItemId() == R.id.action_delete_all) {
                 new ConfirmDialog.Builder()
                         .setTitle("Xóa tất cả nhật ký")
@@ -118,7 +119,6 @@ public class JournalFragment extends Fragment {
             }
             return false;
         });
-        popupMenu.show();
     }
 
     private void showPlantSelectionDialog() {

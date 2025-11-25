@@ -1,11 +1,9 @@
 package com.example.plantcare.ui.history;
 
 import android.graphics.PorterDuff;
-import android.graphics.PorterDuffColorFilter;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Toast;
 
@@ -38,6 +36,8 @@ public class HistoryFragment extends BaseFragment<FragmentHistoryBinding> {
 
     private HistoryViewModel mViewModel;
     private HistoryAdapter mAdapter;
+    private final String ALL_TASK_TYPES = "Tất cả";
+
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -66,6 +66,14 @@ public class HistoryFragment extends BaseFragment<FragmentHistoryBinding> {
 
         mViewModel.getHistories().observe(getViewLifecycleOwner(), histories -> {
             mAdapter.submitList(histories);
+            boolean isEmpty = histories == null || histories.isEmpty();
+            binding.rvHistory.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+            binding.emptyViewLayout.getRoot().setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+
+            if (isEmpty) {
+                binding.emptyViewLayout.setTitle("Không có lịch sử nào");
+                binding.emptyViewLayout.setSubtitle("Lịch sử các công việc chăm sóc sẽ được hiển thị ở đây.");
+            }
         });
 
         mViewModel.isFilterActive.observe(getViewLifecycleOwner(), isActive -> {
@@ -79,7 +87,7 @@ public class HistoryFragment extends BaseFragment<FragmentHistoryBinding> {
         HistoryFilterBottomSheetLayoutBinding bottomSheetBinding = HistoryFilterBottomSheetLayoutBinding.inflate(getLayoutInflater());
         bottomSheetDialog.setContentView(bottomSheetBinding.getRoot());
 
-        DropdownUtils.setupEnumDropdown(bottomSheetBinding.spnTaskType, TaskType.class);
+        DropdownUtils.setupEnumDropdown(bottomSheetBinding.spnTaskType, TaskType.class, ALL_TASK_TYPES);
 
         // Create a single click listener for showing the date picker
         View.OnClickListener datePickerClickListener = v -> {
@@ -113,8 +121,10 @@ public class HistoryFragment extends BaseFragment<FragmentHistoryBinding> {
                     bottomSheetBinding.spnTaskType.setText(taskType.getDisplayName(), false);
                 } catch (IllegalArgumentException e) {
                     // Handle case where taskType name from filter is not a valid enum constant
-                    bottomSheetBinding.spnTaskType.setText("", false);
+                    bottomSheetBinding.spnTaskType.setText(ALL_TASK_TYPES, false);
                 }
+            } else {
+                bottomSheetBinding.spnTaskType.setText(ALL_TASK_TYPES, false);
             }
             if (currentFilter.date != null) {
                 try {
@@ -134,6 +144,7 @@ public class HistoryFragment extends BaseFragment<FragmentHistoryBinding> {
             }
         } else {
             bottomSheetBinding.filterSwitch.setChecked(false);
+            bottomSheetBinding.spnTaskType.setText(ALL_TASK_TYPES, false);
         }
 
         Runnable setFilterControlsEnabled = () -> {
@@ -151,7 +162,7 @@ public class HistoryFragment extends BaseFragment<FragmentHistoryBinding> {
         bottomSheetBinding.filterSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             setFilterControlsEnabled.run();
             if (!isChecked) {
-                bottomSheetBinding.spnTaskType.setText("", false);
+                bottomSheetBinding.spnTaskType.setText(ALL_TASK_TYPES, false);
                 bottomSheetBinding.tvNotifyDate.setText("");
                 bottomSheetBinding.cbDoneStatus.setChecked(false);
                 bottomSheetBinding.cbMissStatus.setChecked(false);
@@ -161,8 +172,14 @@ public class HistoryFragment extends BaseFragment<FragmentHistoryBinding> {
 
         bottomSheetBinding.btnApplyFilter.setOnClickListener(v -> {
             String selectedDisplayName = bottomSheetBinding.spnTaskType.getText().toString();
-            TaskType selectedTaskType = DropdownUtils.getEnumValueFromDisplayName(TaskType.class, selectedDisplayName);
-            String taskTypeName = (selectedTaskType != null) ? selectedTaskType.name() : null;
+            String taskTypeName = null;
+            if (!selectedDisplayName.equals(ALL_TASK_TYPES)) {
+                TaskType selectedTaskType = DropdownUtils.getEnumValueFromDisplayName(TaskType.class, selectedDisplayName);
+                if (selectedTaskType != null) {
+                    taskTypeName = selectedTaskType.name();
+                }
+            }
+
 
             List<String> statuses = new ArrayList<>();
             if (bottomSheetBinding.cbDoneStatus.isChecked()) {
@@ -185,6 +202,7 @@ public class HistoryFragment extends BaseFragment<FragmentHistoryBinding> {
                 } catch (ParseException e) {
                     e.printStackTrace();
                     Toast.makeText(getContext(), "Invalid date format", Toast.LENGTH_SHORT).show();
+                    return; // Don't dismiss, let user correct the date
                 }
             }
 

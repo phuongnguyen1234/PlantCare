@@ -54,7 +54,9 @@ public class PlantAdapter extends ListAdapter<Plant, PlantAdapter.ViewHolder> {
         holder.bind(plant);
 
         holder.binding.ibMore.setOnClickListener(v -> {
-            PopupMenu.OnMenuItemClickListener listener = item -> {
+            MenuUtils.showCustomPopupMenu(v, R.menu.option_menu, popupMenu -> {
+                popupMenu.getMenu().findItem(R.id.action_delete_all).setVisible(false);
+            }, item -> {
                 int itemId = item.getItemId();
                 if (itemId == R.id.menu_edit) {
                     if (menuClickListener != null) {
@@ -68,9 +70,7 @@ public class PlantAdapter extends ListAdapter<Plant, PlantAdapter.ViewHolder> {
                     return true;
                 }
                 return false;
-            };
-
-            MenuUtils.showCustomPopupMenu(v, R.menu.edit_delete_menu, listener);
+            });
         });
     }
 

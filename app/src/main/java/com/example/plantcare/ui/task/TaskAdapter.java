@@ -1,7 +1,6 @@
 package com.example.plantcare.ui.task;
 
 import android.annotation.SuppressLint;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -124,7 +123,9 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
                 if (position != RecyclerView.NO_POSITION && listener != null) {
                     TaskWithPlants taskWithPlants = ((TaskAdapter) getBindingAdapter()).getItem(position);
 
-                    MenuUtils.showCustomPopupMenu(v, R.menu.edit_delete_menu, item -> {
+                    MenuUtils.showCustomPopupMenu(v, R.menu.option_menu, popupMenu -> {
+                        popupMenu.getMenu().findItem(R.id.action_delete_all).setVisible(false);
+                    }, item -> {
                         int itemId = item.getItemId();
                         if (itemId == R.id.menu_edit) {
                             listener.onEditClick(taskWithPlants.task.getTaskId());
@@ -150,7 +151,7 @@ public class TaskAdapter extends ListAdapter<TaskWithPlants, TaskAdapter.TaskVie
         public void bind(TaskWithPlants taskWithPlants) {
             binding.setTask(taskWithPlants.task);
 
-            if ((taskWithPlants.task.getStatus() == Status.SCHEDULED || taskWithPlants.task.getStatus() == Status.READY) && 
+            if ((taskWithPlants.task.getStatus() == Status.SCHEDULED || taskWithPlants.task.getStatus() == Status.READY) &&
                 taskWithPlants.task.getExpiration() != null &&
                 taskWithPlants.task.getExpiration().isBefore(LocalDateTime.now())) {
                 if (listener != null) {

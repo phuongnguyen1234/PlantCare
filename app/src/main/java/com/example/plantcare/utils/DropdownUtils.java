@@ -7,6 +7,7 @@ import android.widget.AutoCompleteTextView;
 
 import com.example.plantcare.data.enums.DisplayableEnum;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -21,6 +22,10 @@ public class DropdownUtils {
      * @param <T> An enum type that implements DisplayableEnum.
      */
     public static <T extends Enum<T> & DisplayableEnum> void setupEnumDropdown(AutoCompleteTextView autoCompleteTextView, Class<T> enumClass) {
+        setupEnumDropdown(autoCompleteTextView, enumClass, null);
+    }
+
+    public static <T extends Enum<T> & DisplayableEnum> void setupEnumDropdown(AutoCompleteTextView autoCompleteTextView, Class<T> enumClass, String firstItem) {
         if (autoCompleteTextView == null || enumClass == null) {
             return;
         }
@@ -31,9 +36,13 @@ public class DropdownUtils {
             return;
         }
 
-        List<String> displayNames = Arrays.stream(enumConstants)
+        List<String> displayNames = new ArrayList<>();
+        if (firstItem != null) {
+            displayNames.add(firstItem);
+        }
+        displayNames.addAll(Arrays.stream(enumConstants)
                 .map(DisplayableEnum::getDisplayName)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_dropdown_item_1line, displayNames);
 
