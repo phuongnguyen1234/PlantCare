@@ -86,14 +86,14 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom"
                     android:background="#4D000000"
+                    android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:padding="12dp">
 
                     <TextView
                         android:id="@+id/tvDate"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:textColor="@android:color/white"
                         android:textStyle="bold"
                         app:formattedDate="@{journal.journal.dateCreated}"
@@ -101,11 +101,16 @@
 
                     <TextView
                         android:id="@+id/tvContent"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:gravity="end"
+                        android:maxLines="1"
                         android:text="@{journal.journal.content}"
                         android:textColor="@android:color/white"
-                        tools:text="Cây vẫn khỏe mạnh" />
+                        tools:text="Cây vẫn khỏe mạnh, có vẻ hơi vàng lá" />
                 </LinearLayout>
             </FrameLayout>
 
