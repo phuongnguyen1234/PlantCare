@@ -13,17 +13,18 @@
             type="com.example.plantcare.data.entity.Plant" />
     </data>
 
-    <RelativeLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/transparent">
 
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_above="@+id/btn_save"
+            android:layout_height="0dp"
             android:background="@color/layout_background_color"
-            android:clipToPadding="false">
+            android:clipToPadding="false"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/btn_save">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -404,7 +405,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="top"
                         android:inputType="textMultiLine"
-                        android:minLines="3"
+                        android:minHeight="100dp"
                         android:text="@{plant.note}"
                         android:hint="Không cần nhiều nước mỗi lần tưới..."/>
                 </com.google.android.material.textfield.TextInputLayout>
@@ -414,13 +415,17 @@
 
         <Button
             android:id="@+id/btn_save"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_margin="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
             android:backgroundTint="@color/colorPrimary"
             android:padding="12dp"
-            android:text='@{plant == null || plant.plantId == 0 ? "Thêm cây" : "Lưu thay đổi"}'
-            android:textSize="16sp"/>
-    </RelativeLayout>
+            android:text='@{plant == null || plant.plantId == 0 ? "Thêm cây" : "Cập nhật"}'
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
